@@ -432,5 +432,3 @@ export function ResumeBuilder({
     </Card>
   );
 }
-
-    
