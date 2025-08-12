@@ -47,17 +47,26 @@ export function ResumeBuilder({
   const handleSuggestions = async (section: string, currentText?: string, context?: Record<string, string>) => {
     setIsSuggesting(section);
     setSuggestions([]);
-    const result = await getResumeSuggestions({ section, currentText, context });
-    if ("error" in result) {
+    try {
+        const result = await getResumeSuggestions({ section, currentText, context });
+        if ("error" in result) {
+            toast({
+                variant: "destructive",
+                title: "Suggestion Error",
+                description: result.error,
+            });
+        } else {
+            setSuggestions(result.suggestions);
+        }
+    } catch (error) {
         toast({
             variant: "destructive",
             title: "Suggestion Error",
-            description: result.error,
+            description: "An unexpected error occurred while fetching suggestions.",
         });
-    } else {
-        setSuggestions(result.suggestions);
+    } finally {
+        setIsSuggesting(null);
     }
-    setIsSuggesting(null);
   };
 
   useEffect(() => {
@@ -96,13 +105,13 @@ export function ResumeBuilder({
             }
             break;
           case 'project':
-            if (index !== -1) {
+            if (index !== -1 && resumeData.projects) {
               const currentDesc = resumeData.projects[index].description;
               handleProjectChange(index, "description", currentDesc + finalTranscript);
             }
             break;
           case 'skills':
-             const currentSkills = resumeData.skills.join(", ");
+             const currentSkills = (resumeData.skills || []).join(", ");
              handleSkillsChange(currentSkills ? `${currentSkills}, ${finalTranscript}`: finalTranscript);
             break;
           case 'jobDescription':
@@ -207,7 +216,7 @@ export function ResumeBuilder({
   };
   
   const handleProjectChange = (index: number, field: string, value: string) => {
-    const newProjects = [...resumeData.projects];
+    const newProjects = [...(resumeData.projects || [])];
     newProjects[index] = { ...newProjects[index], [field]: value };
     setResumeData({ ...resumeData, projects: newProjects });
   };
@@ -223,7 +232,7 @@ export function ResumeBuilder({
   };
 
   const removeProject = (index: number) => {
-    const newProjects = resumeData.projects.filter((_, i) => i !== index);
+    const newProjects = (resumeData.projects || []).filter((_, i) => i !== index);
     setResumeData({ ...resumeData, projects: newProjects });
   };
   
@@ -322,7 +331,12 @@ export function ResumeBuilder({
       context?: Record<string, string>;
       onSelect: (value: string) => void;
     }) => (
-      <Popover onOpenChange={(open) => !open && setSuggestions([])}>
+      <Popover onOpenChange={(open) => {
+          if (!open) {
+              setSuggestions([]);
+              setIsSuggesting(null);
+          }
+      }}>
         <PopoverTrigger asChild>
           <Button
             size="icon"
@@ -336,21 +350,21 @@ export function ResumeBuilder({
         </PopoverTrigger>
         <PopoverContent className="w-80">
           <div className="space-y-2">
-            <h4 className="font-medium leading-none">Suggestions</h4>
+            <h4 className="font-medium leading-none">AI Suggestions</h4>
             <div className="flex flex-col gap-2">
               {suggestions.length > 0 ? (
                 suggestions.map((s, i) => (
                   <Button
                     key={i}
                     variant="link"
-                    className="p-0 h-auto text-left whitespace-normal"
+                    className="p-0 h-auto text-left whitespace-normal text-muted-foreground hover:text-primary"
                     onClick={() => onSelect(s)}
                   >
                     {s}
                   </Button>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">No suggestions available. Try adding more context.</p>
+                <p className="text-sm text-muted-foreground">No suggestions found. Try adding more context or details.</p>
               )}
             </div>
           </div>
@@ -523,7 +537,7 @@ export function ResumeBuilder({
                     <div><Label>Certification Name</Label><Input value={cert.name} onChange={(e) => handleCertificationChange(index, "name", e.target.value)} /></div>
                     <div><Label>Issuing Authority</Label><Input value={cert.authority} onChange={(e) => handleCertificationChange(index, "authority", e.target.value)} /></div>
                     <div><Label>Date Earned</Label><Input value={cert.date} onChange={(e) => handleCertificationChange(index, "date", e.target.value)} /></div>
-                    <div><Label>URL (optional)</Label><Input value={cert.link} onChange={(e) => handleCertificationChange(index, "link", e.target.value)} placeholder="https://example.com/cert" /></div>
+                    <div><Label>URL (optional)</Label><Input value={cert.link || ''} onChange={(e) => handleCertificationChange(index, "link", e.target.value)} placeholder="https://example.com/cert" /></div>
                   </div>
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeCertification(index)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
@@ -539,7 +553,7 @@ export function ResumeBuilder({
                 <div key={award.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-1"><Label>Award/Achievement</Label><Input value={award.name} onChange={(e) => handleAwardChange(index, "name", e.target.value)} /></div>
-                    <div className="md:col-span-1"><Label>URL (optional)</Label><Input value={award.link} onChange={(e) => handleAwardChange(index, "link", e.target.value)} placeholder="https://example.com/award" /></div>
+                    <div className="md:col-span-1"><Label>URL (optional)</Label><Input value={award.link || ''} onChange={(e) => handleAwardChange(index, "link", e.target.value)} placeholder="https://example.com/award" /></div>
                   </div>
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeAward(index)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
@@ -598,7 +612,7 @@ export function ResumeBuilder({
                 )}
               </div>
               <div className="flex flex-col sm:flex-row gap-2">
-                <Button onClick={handleScore} disabled={isLoading} className="w-full bg-[hsl(var(--accent))] text-accent-foreground hover:bg-[hsl(var(--accent)/0.9)] transition-transform hover:scale-105 active:scale-100">
+                <Button onClick={handleScore} disabled={isLoading || !jobDescription} className="w-full bg-[hsl(var(--accent))] text-accent-foreground hover:bg-[hsl(var(--accent)/0.9)] transition-transform hover:scale-105 active:scale-100">
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     {isLoading ? "Analyzing..." : "Analyze and Score Built Resume"}
                 </Button>
@@ -613,3 +627,5 @@ export function ResumeBuilder({
     </Card>
   );
 }
+
+    
