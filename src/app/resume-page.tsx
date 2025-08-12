@@ -39,10 +39,12 @@ export default function ResumePage() {
   }, [])
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(RESUME_STORAGE_KEY, JSON.stringify(resumeData));
-    } catch (error) {
-      console.error("Error saving resume to localStorage", error);
+    if (typeof window !== 'undefined') {
+        try {
+            window.localStorage.setItem(RESUME_STORAGE_KEY, JSON.stringify(resumeData));
+        } catch (error) {
+            console.error("Error saving resume to localStorage", error);
+        }
     }
   }, [resumeData]);
 
