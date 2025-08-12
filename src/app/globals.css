@@ -198,13 +198,16 @@ body {
 
 @media print {
   body, html {
-    background: #fff;
+    background: #fff !important;
   }
   body * {
     visibility: hidden;
   }
   #resume-preview, #resume-preview * {
     visibility: visible;
+    color: #000 !important;
+    background-color: #fff !important;
+    border-color: #000 !important;
   }
   #resume-preview {
     position: absolute;
@@ -216,14 +219,24 @@ body {
     height: 100%;
     margin: 0;
     padding: 0;
-    border: none;
-    box-shadow: none;
+    border: none !important;
+    box-shadow: none !important;
     transform: scale(1);
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+  #resume-preview a {
+    color: #000 !important;
+    text-decoration: none;
+  }
+  #resume-preview h2 {
+    color: #000 !important;
+    border-bottom: 2px solid #000 !important;
+  }
+  #resume-preview .bg-primary\/10 {
+    background-color: transparent !important;
   }
   .no-print {
     display: none !important;
   }
 }
-
