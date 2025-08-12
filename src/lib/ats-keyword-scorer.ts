@@ -14,6 +14,7 @@ const tokenizer = new WordTokenizer();
 const processTextToStems = (text: string): string[] => {
     if (!text) return [];
     const tokens = tokenizer.tokenize(text.toLowerCase());
+    if (!tokens) return []; // Add null check for tokenizer result
     const filteredTokens = tokens.filter(token => !Stopwords.includes(token) && /^[a-z]+$/.test(token));
     return filteredTokens.map(token => PorterStemmer.stem(token));
 };
@@ -67,18 +68,21 @@ export function scoreResumeWithKeywords(
     const normalizedScore = maxPossibleScore > 0 ? (weightedScore / maxPossibleScore) * 100 : 0;
     
     // Find original keywords from stems for reporting
-    const jdKeywords = new Set(processTextToStems(jobDescription).map(stem => PorterStemmer.stem(stem)));
     const originalKeywordsMap: { [key: string]: string } = {};
 
-    const jdTokens = tokenizer.tokenize(jobDescription.toLowerCase())
-        .filter(token => !Stopwords.includes(token) && /^[a-z]+$/.test(token));
+    const jdTokens = tokenizer.tokenize(jobDescription.toLowerCase());
+    
+    if (jdTokens) {
+        const filteredTokens = jdTokens.filter(token => !Stopwords.includes(token) && /^[a-z]+$/.test(token));
 
-    jdTokens.forEach(token => {
-        const stem = PorterStemmer.stem(token);
-        if (jdKeywords.has(stem) && !originalKeywordsMap[stem]) {
-            originalKeywordsMap[stem] = token;
-        }
-    });
+        filteredTokens.forEach(token => {
+            const stem = PorterStemmer.stem(token);
+            if (jdStems.has(stem) && !originalKeywordsMap[stem]) {
+                originalKeywordsMap[stem] = token;
+            }
+        });
+    }
+
 
     const matchedKeywords = Array.from(allMatchedStems).map(stem => originalKeywordsMap[stem] || stem);
     const missingKeywords = Array.from(jdStems)
