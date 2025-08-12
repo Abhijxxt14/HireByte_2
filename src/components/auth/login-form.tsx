@@ -89,7 +89,7 @@ export function LoginForm() {
         console.error("Google Sign-In Error:", error);
         let description = 'An unexpected error occurred. Please try again.';
         if (error.code === 'auth/unauthorized-domain') {
-            description = "This domain is not authorized for Google Sign-In. Please double-check that 'localhost' is in the authorized domains list in your Firebase project's Authentication settings.";
+            description = "This domain is not authorized for Google Sign-In. Please double-check that 'localhost' and '127.0.0.1' are in the authorized domains list in your Firebase project's Authentication settings.";
         }
         toast({
             variant: 'destructive',
