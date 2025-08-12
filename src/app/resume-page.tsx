@@ -7,8 +7,6 @@ import { initialResumeData } from '@/lib/resume-template';
 import { getAtsScore } from '@/lib/actions';
 import { ResumeBuilder } from '@/components/resume-builder';
 import { ResumePreview } from '@/components/resume-preview';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { FileText } from 'lucide-react';
 
@@ -124,9 +122,7 @@ export default function ResumePage() {
           setJobDescription={setJobDescription}
           handleScore={handleScoreFromBuilder}
           isLoading={isLoading}
-          setIsLoading={setIsLoading}
           atsResult={atsResult}
-          setAtsResult={setAtsResult}
         />
         <div className="sticky top-8">
             <ResumePreview resumeData={resumeData} />
