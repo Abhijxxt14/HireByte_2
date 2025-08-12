@@ -10,10 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AtsScoreDisplay } from "@/components/ats-score-display";
-import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff, FolderKanban, Award, Languages, Handshake, Ribbon, Wand2 } from "lucide-react";
+import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff, FolderKanban, Award, Languages, Handshake, Ribbon } from "lucide-react";
 import React, { useState, useEffect, useRef } from 'react';
-import { getResumeSuggestions } from "@/lib/actions";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 
 const SpeechRecognition =
@@ -40,34 +38,7 @@ export function ResumeBuilder({
 }: ResumeBuilderProps) {
   const [isListening, setIsListening] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
-  const [isSuggesting, setIsSuggesting] = useState<string | null>(null);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
   const { toast } = useToast();
-
-  const handleSuggestions = async (section: string, currentText?: string, context?: Record<string, string>) => {
-    setIsSuggesting(section);
-    setSuggestions([]);
-    try {
-        const result = await getResumeSuggestions({ section, currentText, context });
-        if ("error" in result) {
-            toast({
-                variant: "destructive",
-                title: "Suggestion Error",
-                description: result.error,
-            });
-        } else {
-            setSuggestions(result.suggestions);
-        }
-    } catch (error) {
-        toast({
-            variant: "destructive",
-            title: "Suggestion Error",
-            description: "An unexpected error occurred while fetching suggestions.",
-        });
-    } finally {
-        setIsSuggesting(null);
-    }
-  };
 
 
   useEffect(() => {
@@ -320,58 +291,6 @@ export function ResumeBuilder({
     const newLang = (resumeData.languages || []).filter((_, i) => i !== index);
     setResumeData({ ...resumeData, languages: newLang });
   };
-  
-  const SuggestionPopover = ({
-      section,
-      currentText,
-      context,
-      onSelect,
-    }: {
-      section: string;
-      currentText?: string;
-      context?: Record<string, string>;
-      onSelect: (value: string) => void;
-    }) => (
-      <Popover onOpenChange={(open) => {
-          if (!open) {
-              setSuggestions([]);
-              setIsSuggesting(null);
-          }
-      }}>
-        <PopoverTrigger asChild>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary"
-            onClick={() => handleSuggestions(section, currentText, context)}
-            disabled={!!isSuggesting}
-          >
-            {isSuggesting === section ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-80">
-          <div className="space-y-2">
-            <h4 className="font-medium leading-none">AI Suggestions</h4>
-            <div className="flex flex-col gap-2">
-              {suggestions.length > 0 ? (
-                suggestions.map((s, i) => (
-                  <Button
-                    key={i}
-                    variant="link"
-                    className="p-0 h-auto text-left whitespace-normal text-muted-foreground hover:text-primary"
-                    onClick={() => onSelect(s)}
-                  >
-                    {s}
-                  </Button>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">No suggestions found. Try adding more context or details.</p>
-              )}
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
-    );
 
   return (
     <Card className="shadow-2xl shadow-primary/10 transition-shadow duration-300 hover:shadow-primary/20">
@@ -405,18 +324,13 @@ export function ResumeBuilder({
             <AccordionContent className="space-y-2 pt-2">
                 <div className="relative">
                     <Label htmlFor="summary">Summary</Label>
-                    <Textarea id="summary" value={resumeData.summary} onChange={(e) => handleSummaryChange(e.target.value)} placeholder="Write a brief professional summary..." rows={4} className="pr-12"/>
+                    <Textarea id="summary" value={resumeData.summary} onChange={(e) => handleSummaryChange(e.target.value)} placeholder="Write a brief professional summary..." rows={4} className="pr-10"/>
                     <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
                         {SpeechRecognition && (
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('summary')}>
                                 {isListening === 'summary' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
                             </Button>
                         )}
-                        <SuggestionPopover
-                            section="Professional Summary"
-                            currentText={resumeData.summary}
-                            onSelect={handleSummaryChange}
-                        />
                     </div>
                 </div>
             </AccordionContent>
@@ -436,19 +350,13 @@ export function ResumeBuilder({
                   </div>
                   <div className="relative">
                     <Label>Description</Label>
-                    <Textarea value={exp.description} onChange={(e) => handleExperienceChange(index, "description", e.target.value)} rows={3} placeholder="- Key achievement 1..." className="pr-12"/>
+                    <Textarea value={exp.description} onChange={(e) => handleExperienceChange(index, "description", e.target.value)} rows={3} placeholder="- Key achievement 1..." className="pr-10"/>
                      <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
                         {SpeechRecognition && (
                              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening(`experience-${index}`)}>
                                 {isListening === `experience-${index}` ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
                             </Button>
                         )}
-                        <SuggestionPopover
-                          section="Experience Description"
-                          currentText={exp.description}
-                          context={{ jobTitle: exp.jobTitle, company: exp.company }}
-                          onSelect={(value) => handleExperienceChange(index, "description", value)}
-                        />
                     </div>
                   </div>
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeExperience(index)}><Trash2 className="h-4 w-4" /></Button>
@@ -484,19 +392,13 @@ export function ResumeBuilder({
                   <div><Label>Project Name</Label><Input value={proj.name} onChange={(e) => handleProjectChange(index, "name", e.target.value)} /></div>
                   <div className="relative">
                     <Label>Description</Label>
-                    <Textarea value={proj.description} onChange={(e) => handleProjectChange(index, "description", e.target.value)} rows={3} placeholder="Describe your project..." className="pr-12" />
+                    <Textarea value={proj.description} onChange={(e) => handleProjectChange(index, "description", e.target.value)} rows={3} placeholder="Describe your project..." className="pr-10" />
                     <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
                         {SpeechRecognition && (
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening(`project-${index}`)}>
                                 {isListening === `project-${index}` ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
                             </Button>
                         )}
-                         <SuggestionPopover
-                            section="Project Description"
-                            currentText={proj.description}
-                            context={{ projectName: proj.name }}
-                            onSelect={(value) => handleProjectChange(index, "description", value)}
-                        />
                     </div>
                   </div>
                   <div><Label>Demo Link</Label><Input value={proj.link} onChange={(e) => handleProjectChange(index, "link", e.target.value)} /></div>
@@ -512,18 +414,13 @@ export function ResumeBuilder({
             <AccordionContent className="pt-2">
                 <div className="relative">
                     <Label htmlFor="skills">Skills (comma-separated)</Label>
-                    <Textarea id="skills" value={(resumeData.skills || []).join(", ")} onChange={(e) => handleSkillsChange(e.target.value)} className="pr-12"/>
+                    <Textarea id="skills" value={(resumeData.skills || []).join(", ")} onChange={(e) => handleSkillsChange(e.target.value)} className="pr-10"/>
                      <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
                         {SpeechRecognition && (
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('skills')}>
                                 {isListening === 'skills' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
                             </Button>
                         )}
-                        <SuggestionPopover
-                            section="Skills"
-                            currentText={(resumeData.skills || []).join(", ")}
-                            onSelect={(value) => handleSkillsChange(value)}
-                        />
                     </div>
                 </div>
             </AccordionContent>
@@ -605,7 +502,7 @@ export function ResumeBuilder({
             <AccordionContent className="space-y-4 pt-2">
               <div className="relative">
                 <Label htmlFor="job-description">Job Description</Label>
-                <Textarea id="job-description" value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} placeholder="Paste the job description here..." rows={6} className="pr-12"/>
+                <Textarea id="job-description" value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} placeholder="Paste the job description here..." rows={6} className="pr-10"/>
                  {SpeechRecognition && (
                     <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('jobDescription')}>
                         {isListening === 'jobDescription' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
@@ -628,5 +525,3 @@ export function ResumeBuilder({
     </Card>
   );
 }
-
-    
