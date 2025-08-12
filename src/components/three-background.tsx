@@ -1,14 +1,29 @@
+
 "use client"
 
 import { useState, useRef, Suspense } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Points, PointMaterial } from '@react-three/drei'
-// @ts-ignore
-import * as random from 'maath/random/dist/maath-random.esm'
 
 function Stars(props: any) {
   const ref = useRef<any>()
-  const [sphere] = useState(() => random.inSphere(new Float32Array(5000), { radius: 1.2 }))
+  
+  const [sphere] = useState(() => {
+    const numPoints = 5000;
+    const radius = 1.2;
+    const positions = new Float32Array(numPoints * 3);
+    for (let i = 0; i < numPoints; i++) {
+        const u = Math.random();
+        const v = Math.random();
+        const theta = 2 * Math.PI * u;
+        const phi = Math.acos(2 * v - 1);
+        const r = radius * Math.cbrt(Math.random());
+        positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+        positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+        positions[i * 3 + 2] = r * Math.cos(phi);
+    }
+    return positions;
+  });
 
   useFrame((_state, delta) => {
     if (ref.current) {

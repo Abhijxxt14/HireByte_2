@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -31,6 +32,11 @@ export default function ResumePage() {
   const [atsResult, setAtsResult] = useState<AtsScoreResumeOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false)
+ 
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
     try {
@@ -107,7 +113,7 @@ export default function ResumePage() {
 
   return (
     <div className="relative isolate min-h-screen w-full">
-      <ThreeBackground />
+      {isClient && <ThreeBackground />}
       <div className="container mx-auto p-4 md:p-8 relative z-10">
         <header className="text-center mb-12 relative">
           <div className="absolute top-0 right-0">
