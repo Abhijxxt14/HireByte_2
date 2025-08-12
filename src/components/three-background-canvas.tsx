@@ -8,7 +8,7 @@ import type * as THREE from 'three'
 function Stars(props: any) {
   const ref = useRef<THREE.Points>(null!)
 
-  // Generate random star positions
+  // Generate random star positions in a sphere
   const [positions] = React.useState(() => {
     const count = 5000
     const radius = 2
