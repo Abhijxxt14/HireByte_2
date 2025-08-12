@@ -3,6 +3,7 @@
 
 import type { Resume } from "@/lib/types";
 import type { AtsScoreResumeOutput } from "@/ai/flows/ats-score-resume";
+import type { CoachResumeOutput } from "@/ai/flows/coach-resume";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,9 +11,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AtsScoreDisplay } from "@/components/ats-score-display";
-import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff, FolderKanban, Award, Languages, Handshake, Ribbon, Wand2 } from "lucide-react";
+import { ResumeCoachDisplay } from "@/components/resume-coach-display";
+import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff, FolderKanban, Award, Languages, Handshake, Ribbon, Wand2, Lightbulb } from "lucide-react";
 import React, { useState, useEffect, useRef } from 'react';
-import { getResumeSuggestions } from "@/lib/actions";
+import { getResumeSuggestions, getResumeCoaching } from "@/lib/actions";
+import { getResumeAsText } from "@/lib/resume-text-extractor";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 
@@ -44,6 +47,9 @@ export function ResumeBuilder({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const { toast } = useToast();
 
+  const [isCoaching, setIsCoaching] = useState(false);
+  const [coachingResult, setCoachingResult] = useState<CoachResumeOutput | null>(null);
+
   const handleSuggestions = async (section: string, currentText?: string, context?: Record<string, string>) => {
     setIsSuggesting(section);
     setSuggestions([]);
@@ -67,6 +73,24 @@ export function ResumeBuilder({
     } finally {
         setIsSuggesting(null);
     }
+  };
+
+   const handleCoaching = async () => {
+    setIsCoaching(true);
+    setCoachingResult(null);
+    const resumeText = getResumeAsText(resumeData);
+    const result = await getResumeCoaching(resumeText);
+    
+    if ('error' in result) {
+      toast({
+        variant: 'destructive',
+        title: 'Coaching Error',
+        description: result.error,
+      });
+    } else {
+      setCoachingResult(result);
+    }
+    setIsCoaching(false);
   };
 
   useEffect(() => {
@@ -598,6 +622,22 @@ export function ResumeBuilder({
               <Button variant="outline" onClick={addLanguage} className="transition-transform hover:scale-105"><PlusCircle className="mr-2"/>Add Language</Button>
             </AccordionContent>
           </AccordionItem>
+          
+          <AccordionItem value="coach">
+            <AccordionTrigger className="text-lg font-semibold"><Lightbulb className="mr-3 h-5 w-5 text-primary accordion-icon"/>Resume Coach</AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2">
+                <CardDescription>
+                    Get expert, actionable feedback on your entire resume. Identify weak phrases, find stronger verbs, and learn how to quantify your achievements.
+                </CardDescription>
+                <Button onClick={handleCoaching} disabled={isCoaching} className="w-full">
+                    {isCoaching ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    {isCoaching ? "Analyzing..." : "Get Resume Feedback"}
+                </Button>
+                {isCoaching && <p className="text-center text-sm text-muted-foreground">Our AI coach is analyzing your resume. This may take a moment...</p>}
+                {coachingResult && <ResumeCoachDisplay result={coachingResult} />}
+            </AccordionContent>
+          </AccordionItem>
+
 
           <AccordionItem value="ats-score">
             <AccordionTrigger className="text-lg font-semibold"><BrainCircuit className="mr-3 h-5 w-5 text-primary accordion-icon"/>ATS Score Analysis</AccordionTrigger>

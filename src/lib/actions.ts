@@ -2,6 +2,7 @@
 
 import { atsScoreResume, type AtsScoreResumeOutput } from "@/ai/flows/ats-score-resume";
 import { suggestResumeText, type SuggestResumeTextInput, type SuggestResumeTextOutput } from "@/ai/flows/suggest-resume-text";
+import { coachResume, type CoachResumeOutput } from "@/ai/flows/coach-resume";
 
 export async function getAtsScore(
   resumeText: string,
@@ -34,5 +35,21 @@ export async function getResumeSuggestions(
   } catch (e) {
     console.error("Resume Suggestion Error:", e);
     return { error: "An unexpected error occurred while generating suggestions. Please try again later." };
+  }
+}
+
+export async function getResumeCoaching(
+    resumeText: string
+): Promise<CoachResumeOutput | { error: string }> {
+  if (!resumeText) {
+    return { error: "Resume content cannot be empty." };
+  }
+
+  try {
+    const result = await coachResume(resumeText);
+    return result;
+  } catch (e) {
+    console.error("Resume Coaching Error:", e);
+    return { error: "An unexpected error occurred while getting resume coaching. Please try again later." };
   }
 }
