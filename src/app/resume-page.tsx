@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { FileText } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { UserNav } from '@/components/auth/user-nav';
+import { Footer } from '@/components/footer';
 
 const RESUME_STORAGE_KEY = 'firebase-studio-resume-data';
 
@@ -143,6 +144,7 @@ export default function ResumePage() {
           </div>
         </div>
       </div>
+       <Footer />
     </div>
   );
 }
