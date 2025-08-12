@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { Resume } from "@/lib/types";
@@ -31,7 +30,9 @@ interface ResumeBuilderProps {
   setJobDescription: (desc: string) => void;
   handleScore: () => void;
   isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
   atsResult: AtsScoreResumeOutput | null;
+  setAtsResult: (result: AtsScoreResumeOutput | null) => void;
 }
 
 export function ResumeBuilder({
@@ -41,7 +42,9 @@ export function ResumeBuilder({
   setJobDescription,
   handleScore,
   isLoading,
+  setIsLoading,
   atsResult,
+  setAtsResult,
 }: ResumeBuilderProps) {
   const [isListening, setIsListening] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
@@ -52,7 +55,7 @@ export function ResumeBuilder({
   const handlePdfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    
+
     if (file.type !== 'application/pdf') {
         toast({
             variant: 'destructive',
@@ -61,24 +64,35 @@ export function ResumeBuilder({
         });
         return;
     }
-
+    
     setIsUploading(true);
+    setIsLoading(true); // Use the main loading state
+    setAtsResult(null);
+
     const reader = new FileReader();
     reader.onload = async (e) => {
         const typedArray = new Uint8Array(e.target?.result as ArrayBuffer);
         try {
             const pdf = await pdfjs.getDocument(typedArray).promise;
-            let text = '';
+            let resumeText = '';
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const content = await page.getTextContent();
-                text += content.items.map((item: any) => item.str).join(' ') + '\n';
+                resumeText += content.items.map((item: any) => item.str).join(' ') + '\n';
             }
             
-            // This is a prop drill from the parent component.
-            // It sets the parent's `atsResult` state, which is then passed back down.
-            // It feels a bit indirect, but it reuses the existing state management.
-            handleScore();
+            const result = await getAtsScore(resumeText, jobDescription);
+
+            if ('error' in result) {
+              toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: result.error,
+              });
+              setAtsResult(null);
+            } else {
+              setAtsResult(result);
+            }
 
         } catch (error) {
             console.error("Error parsing PDF", error);
@@ -87,8 +101,14 @@ export function ResumeBuilder({
                 title: 'PDF Parsing Error',
                 description: 'Could not read text from the PDF. Please try another file.',
             });
+            setAtsResult(null);
         } finally {
             setIsUploading(false);
+            setIsLoading(false);
+            // Clear the file input so the same file can be uploaded again
+            if(fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
         }
     };
     reader.readAsArrayBuffer(file);
@@ -401,14 +421,14 @@ export function ResumeBuilder({
                 )}
               </div>
               <div className="flex flex-col sm:flex-row gap-2">
-                <Button onClick={handleScore} disabled={isLoading || isUploading} className="w-full bg-[hsl(var(--accent))] text-accent-foreground hover:bg-[hsl(var(--accent)/0.9)]">
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                    {isLoading ? "Analyzing..." : "Analyze and Score Built Resume"}
+                <Button onClick={handleScore} disabled={isLoading} className="w-full bg-[hsl(var(--accent))] text-accent-foreground hover:bg-[hsl(var(--accent)/0.9)]">
+                    {isLoading && !isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    {isLoading && !isUploading ? "Analyzing..." : "Analyze and Score Built Resume"}
                 </Button>
                 <Button 
                     variant="outline" 
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={isLoading || isUploading}
+                    disabled={isLoading}
                     className="w-full"
                 >
                     {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload />}
@@ -417,7 +437,7 @@ export function ResumeBuilder({
                 <input type="file" ref={fileInputRef} onChange={handlePdfUpload} accept="application/pdf" className="hidden" />
               </div>
 
-              {(isLoading || isUploading) && <p className="text-center text-sm text-muted-foreground">AI is analyzing your resume. This may take a moment...</p>}
+              {isLoading && <p className="text-center text-sm text-muted-foreground">AI is analyzing your resume. This may take a moment...</p>}
               {atsResult && <AtsScoreDisplay result={atsResult} />}
             </AccordionContent>
           </AccordionItem>

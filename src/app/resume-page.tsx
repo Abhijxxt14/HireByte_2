@@ -41,7 +41,7 @@ export default function ResumePage() {
   }, [resumeData]);
 
 
-  const handleScore = async () => {
+  const handleScoreFromBuilder = async () => {
     setIsLoading(true);
     setAtsResult(null);
 
@@ -122,9 +122,11 @@ export default function ResumePage() {
           setResumeData={setResumeData}
           jobDescription={jobDescription}
           setJobDescription={setJobDescription}
-          handleScore={handleScore}
+          handleScore={handleScoreFromBuilder}
           isLoading={isLoading}
+          setIsLoading={setIsLoading}
           atsResult={atsResult}
+          setAtsResult={setAtsResult}
         />
         <div className="sticky top-8">
             <ResumePreview resumeData={resumeData} />
