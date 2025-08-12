@@ -34,7 +34,19 @@ const AccordionTrigger = React.forwardRef<
       )}
       {...props}
     >
-      <span className="flex items-center">{children}</span>
+      <span className="flex items-center">
+        {React.Children.map(children, child => {
+          if (React.isValidElement(child) && typeof child.type !== 'string') {
+            const childProps = child.props as { className?: string };
+            if (childProps.className?.includes('accordion-icon')) {
+              return React.cloneElement(child as React.ReactElement, {
+                className: cn(childProps.className, 'transition-transform duration-200 group-data-[state=open]:rotate-180'),
+              });
+            }
+          }
+          return child;
+        })}
+      </span>
       <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>
