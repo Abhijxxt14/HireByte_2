@@ -32,11 +32,11 @@ export default function ResumePage() {
   const [atsResult, setAtsResult] = useState<AtsScoreResumeOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const [isClient, setIsClient] = useState(false)
+  const [isClient, setIsClient] = useState(false);
  
   useEffect(() => {
-    setIsClient(true)
-  }, [])
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
