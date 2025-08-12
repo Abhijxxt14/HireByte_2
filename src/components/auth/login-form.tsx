@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -42,7 +41,6 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 
 export function LoginForm() {
-  const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -89,12 +87,13 @@ export function LoginForm() {
         console.error("Google Sign-In Error:", error);
         let description = 'An unexpected error occurred. Please try again.';
         if (error.code === 'auth/unauthorized-domain') {
-            description = "This app's domain is not authorized for Google Sign-In. Please ensure 'localhost' and '127.0.0.1' are in the authorized domains list in your Firebase project's Authentication settings and in your Google Cloud Platform OAuth credentials.";
+            description = "This app's domain is not authorized for Google Sign-In. The most likely cause is a misconfiguration in the Google Cloud OAuth Consent Screen. Please go to https://console.cloud.google.com/apis/credentials/consent?project=ats-resume-ace-tzfj1 to configure it.";
         }
         toast({
             variant: 'destructive',
             title: 'Google Sign-In Failed',
             description: description,
+            duration: 15000,
         });
     } finally {
       setIsGoogleLoading(false);
