@@ -8,27 +8,27 @@ body {
 
 @layer base {
   :root {
-    --background: 160 13% 95%; /* #F0F4F3 */
-    --foreground: 215 25% 27%;
+    --background: 220 14% 96%; /* #F2F4F7 - Light Mode */
+    --foreground: 224 10% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 27%;
+    --card-foreground: 224 10% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 27%;
-    --primary: 174 43% 51%; /* #4DB6AC */
+    --popover-foreground: 224 10% 12%;
+    --primary: 211 74% 58%; /* #4A90E2 */
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
     --muted: 0 0% 90%;
     --muted-foreground: 0 0% 45.1%;
-    --accent: 17 100% 78%; /* #FFAB91 */
-    --accent-foreground: 215 25% 27%;
+    --accent: 170 68% 63%; /* #50E3C2 */
+    --accent-foreground: 224 10% 12%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 174 43% 51%;
-    --chart-1: 174 43% 51%;
-    --chart-2: 17 100% 78%;
+    --ring: 211 74% 58%;
+    --chart-1: 211 74% 58%;
+    --chart-2: 170 68% 63%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
@@ -43,27 +43,27 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
-    --background: 215 28% 17%;
+    --background: 220 29% 8%; /* #0A0F1C - Dark Navy */
     --foreground: 0 0% 98%;
-    --card: 215 28% 17%;
+    --card: 220 29% 10%;
     --card-foreground: 0 0% 98%;
-    --popover: 215 28% 17%;
+    --popover: 220 29% 8%;
     --popover-foreground: 0 0% 98%;
-    --primary: 174 43% 51%;
+    --primary: 211 74% 58%; /* #4A90E2 */
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 14.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 14.9%;
     --muted-foreground: 0 0% 63.9%;
-    --accent: 17 100% 78%;
-    --accent-foreground: 215 25% 27%;
+    --accent: 170 68% 63%; /* #50E3C2 */
+    --accent-foreground: 224 10% 12%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 25%;
     --input: 0 0% 25%;
-    --ring: 174 43% 51%;
-    --chart-1: 174 43% 51%;
-    --chart-2: 17 100% 78%;
+    --ring: 211 74% 58%;
+    --chart-1: 211 74% 58%;
+    --chart-2: 170 68% 63%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
@@ -141,6 +141,53 @@ body {
     animation: dash-loader 1.5s ease-in-out infinite;
   }
 
+  @keyframes typewriter {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+  .animate-typewriter {
+    animation: typewriter 2s steps(40, end);
+  }
+
+  @keyframes blink-caret {
+    from, to { border-color: transparent; }
+    50% { border-color: hsl(var(--accent)); }
+  }
+  .animate-blink-caret {
+    animation: blink-caret 0.75s step-end infinite;
+  }
+  
+  @keyframes scanline {
+    0% {
+      transform: translateY(-100%) scaleY(1);
+    }
+    15% {
+      transform: translateY(0) scaleY(4);
+      opacity: 0.8;
+    }
+    70% {
+      transform: translateY(100%) scaleY(1);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(100%) scaleY(1);
+      opacity: 0;
+    }
+  }
+
+  .animate-scanline::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: hsl(var(--accent) / 0.5);
+    box-shadow: 0 0 5px hsl(var(--accent)), 0 0 10px hsl(var(--accent));
+    animation: scanline 2.5s cubic-bezier(0.2, 0.6, 0.7, 1) forwards;
+    animation-delay: 2s;
+    opacity: 0;
+  }
 }
 
 
