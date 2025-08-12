@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { createUserWithEmailAndPassword, updateProfile, signInWithRedirect, GoogleAuthProvider } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,20 +87,21 @@ export function SignUpForm() {
     setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-        await signInWithRedirect(auth, provider);
-         // Redirect will happen, user will be brought back to login page to handle result
+        await signInWithPopup(auth, provider);
+        // Redirect handled by auth context
     } catch (error: any) {
         console.error("Google Sign-In Error:", error);
         let description = 'An unexpected error occurred. Please try again.';
         if (error.code === 'auth/unauthorized-domain') {
-            description = "This domain is not authorized for Google Sign-In. Please double-check that 'localhost' and '127.0.0.1' are in the authorized domains list in your Firebase project's Authentication settings, and in your Google Cloud Platform credentials.";
+            description = "This app's domain is not authorized for Google Sign-In. Please ensure 'localhost' and '127.0.0.1' are in the authorized domains list in your Firebase project's Authentication settings and in your Google Cloud Platform OAuth credentials.";
         }
         toast({
             variant: 'destructive',
             title: 'Google Sign-In Failed',
             description: description,
         });
-        setIsGoogleLoading(false);
+    } finally {
+      setIsGoogleLoading(false);
     }
   }
 

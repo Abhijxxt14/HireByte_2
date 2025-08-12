@@ -8,15 +8,11 @@ import { LoginForm } from '@/components/auth/login-form';
 import Link from 'next/link';
 import { FileText, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getRedirectResult } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { useToast } from '@/hooks/use-toast';
 
 
 export default function LoginPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const { toast } = useToast();
 
   useEffect(() => {
     if (!loading && user) {
@@ -24,29 +20,6 @@ export default function LoginPage() {
     }
   }, [user, loading, router]);
   
-  useEffect(() => {
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          // This is the successfully signed in user.
-          toast({
-            title: 'Success!',
-            description: 'You have been logged in successfully with Google.',
-          });
-          router.replace('/');
-        }
-      })
-      .catch((error) => {
-        // Handle Errors here.
-        console.error("Google Redirect Result Error:", error);
-        toast({
-            variant: 'destructive',
-            title: 'Google Sign-In Failed',
-            description: error.message || 'An unexpected error occurred during Google sign-in.',
-        });
-      });
-  }, [router, toast]);
-
 
   if (loading || user) {
      return (
