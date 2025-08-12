@@ -108,7 +108,7 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md shadow-2xl shadow-primary/10">
+    <Card className="w-full max-w-md shadow-2xl shadow-primary/10 transition-shadow duration-300 hover:shadow-primary/20">
       <CardHeader className="text-center">
         <CardTitle className="text-3xl font-bold font-headline">Welcome Back</CardTitle>
         <CardDescription>Sign in to your account to continue</CardDescription>
@@ -157,7 +157,7 @@ export function LoginForm() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button disabled={isLoading || isGoogleLoading} className="w-full bg-primary hover:bg-primary/90">
+          <Button disabled={isLoading || isGoogleLoading} className="w-full bg-primary hover:bg-primary/90 transition-transform hover:scale-[1.02] active:scale-[0.98]">
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Sign In
           </Button>
@@ -169,7 +169,7 @@ export function LoginForm() {
             </div>
           </div>
 
-          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading}>
+          <Button variant="outline" className="w-full transition-transform hover:scale-[1.02] active:scale-[0.98]" onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading}>
             {isGoogleLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
