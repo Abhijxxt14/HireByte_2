@@ -1,37 +1,57 @@
 
 "use server";
 
-import { atsScoreResume, type AtsScoreResumeOutput } from "@/ai/flows/ats-score-resume";
+import type { Resume } from "@/lib/types";
+import { scoreResumeWithKeywords, type KeywordAtsResult } from "./ats-keyword-scorer";
+import { sanitizeAndTrim } from "./utils";
 
 export async function getAtsScore(
-  resumeText: string,
+  resume: Resume,
   jobDescription: string
-): Promise<AtsScoreResumeOutput | { error: string }> {
-  if (!resumeText || !jobDescription) {
-    return { error: "Resume and job description cannot be empty." };
+): Promise<KeywordAtsResult | { error: string }> {
+  // Basic validation
+  if (!jobDescription || jobDescription.trim().length < 50) {
+    return {
+      error: 'Please provide a complete job description (at least 50 characters).',
+    };
   }
-  
-  if (jobDescription.length < 50) {
-      return { error: "Job description is too short. Please provide a more detailed description." };
+  if (!resume.skills || resume.skills.length === 0) {
+    return { error: 'Please add skills to your resume.' };
+  }
+  if (!resume.experience || resume.experience.length === 0) {
+    return { error: 'Please add work experience to your resume.' };
+  }
+  if (!resume.summary) {
+    return { error: 'Please add a professional summary to your resume.' }
   }
 
+
+  // Construct searchable resume text blocks
+  const skillsText = resume.skills.join(' ');
+  const experienceText = resume.experience
+    .map(e => `${e.jobTitle} ${e.description}`)
+    .join(' ');
+  
+  const otherText = [
+    resume.summary,
+    resume.personalInfo.name,
+    ...resume.education.map(e => `${e.degree} ${e.school}`),
+    ...(resume.projects?.map(p => `${p.name} ${p.description}`) || []),
+  ].join(' ');
+
+  const resumeTextSections = {
+    skills: sanitizeAndTrim(skillsText, 10000),
+    experience: sanitizeAndTrim(experienceText, 20000),
+    other: sanitizeAndTrim(otherText, 10000),
+  };
+  
+  const sanitizedJobDescription = sanitizeAndTrim(jobDescription, 20000);
+
   try {
-    const result = await atsScoreResume({ resumeText, jobDescription });
-    // It's possible for the AI to return a non-compliant or empty response
-    if (!result || !result.score || !result.feedback) {
-        console.error("ATS Scoring Error: AI returned invalid data", result);
-        return { error: "The ATS service returned an invalid analysis. Please try adjusting your resume or job description." };
-    }
+    const result = scoreResumeWithKeywords(resumeTextSections, sanitizedJobDescription);
     return result;
   } catch (e: any) {
-    console.error("ATS Scoring Error in action:", e);
-    // Check for specific error messages from Genkit or network issues
-    if (e.message && e.message.includes('500')) {
-        return { error: "The ATS analysis service is currently unavailable. Please try again later." };
-    }
-    if (e.message && e.message.includes('parse')) {
-        return { error: "There was an issue processing the analysis from the ATS service. Please try again." };
-    }
+    console.error("Keyword Scoring Error in action:", e);
     return { error: "An unexpected error occurred while scoring the resume. Please try again later." };
   }
 }

@@ -1,3 +1,4 @@
+
 export interface PersonalInfo {
   name: string;
   email: string;
@@ -71,4 +72,10 @@ export interface Resume {
   awards: Award[];
   volunteerExperience: VolunteerExperience[];
   languages: Language[];
+}
+
+export interface ResumeTextSections {
+    skills: string;
+    experience: string;
+    other: string;
 }

@@ -2,7 +2,6 @@
 "use client";
 
 import type { Resume } from "@/lib/types";
-import type { AtsScoreResumeOutput } from "@/ai/flows/ats-score-resume";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AtsScoreDisplay } from "@/components/ats-score-display";
 import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff, FolderKanban, Award, Languages, Handshake, Ribbon } from "lucide-react";
 import React, { useState, useEffect, useRef } from 'react';
-import { useToast } from "@/hooks/use-toast";
+import type { KeywordAtsResult } from "@/lib/ats-keyword-scorer";
 
 const SpeechRecognition =
   (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition));
@@ -24,7 +23,7 @@ interface ResumeBuilderProps {
   setJobDescription: (desc: string) => void;
   handleScore: () => void;
   isLoading: boolean;
-  atsResult: AtsScoreResumeOutput | null;
+  atsResult: KeywordAtsResult | null;
 }
 
 export function ResumeBuilder({
@@ -38,7 +37,6 @@ export function ResumeBuilder({
 }: ResumeBuilderProps) {
   const [isListening, setIsListening] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
-  const { toast } = useToast();
 
 
   useEffect(() => {
@@ -516,7 +514,7 @@ export function ResumeBuilder({
                 </Button>
               </div>
 
-              {isLoading && <p className="text-center text-sm text-muted-foreground">AI is analyzing your resume. This may take a moment...</p>}
+              {isLoading && <p className="text-center text-sm text-muted-foreground">Analyzing your resume. This may take a moment...</p>}
               {atsResult && <AtsScoreDisplay result={atsResult} />}
             </AccordionContent>
           </AccordionItem>

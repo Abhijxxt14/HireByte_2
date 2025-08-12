@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -42,10 +43,10 @@ You will receive a resume and a job description. Your task is to:
 3.  Give actionable feedback on how to improve the resume's compatibility with ATS systems, specifically tailored to the job description.
 
 Resume:
-{{resumeText}}
+{{{resumeText}}}
 
 Job Description:
-{{jobDescription}}
+{{{jobDescription}}}
 
 Score (out of 100):`,
 });

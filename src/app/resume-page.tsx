@@ -3,8 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import type { Resume } from '@/lib/types';
-import type { AtsScoreResumeOutput } from '@/ai/flows/ats-score-resume';
-import { initialResumeData } from '@/lib/resume-template';
 import { getAtsScore } from '@/lib/actions';
 import { ResumeBuilder } from '@/components/resume-builder';
 import { ResumePreview } from '@/components/resume-preview';
@@ -14,6 +12,9 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { UserNav } from '@/components/auth/user-nav';
 import { Footer } from '@/components/footer';
 import { sanitizeAndTrim } from '@/lib/utils';
+import type { KeywordAtsResult } from '@/lib/ats-keyword-scorer';
+import { initialResumeData } from '@/lib/resume-template';
+
 
 const RESUME_STORAGE_KEY = 'firebase-studio-resume-data';
 
@@ -31,7 +32,7 @@ export default function ResumePage() {
     }
   });
   const [jobDescription, setJobDescription] = useState('');
-  const [atsResult, setAtsResult] = useState<AtsScoreResumeOutput | null>(null);
+  const [atsResult, setAtsResult] = useState<KeywordAtsResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
  
@@ -94,92 +95,7 @@ export default function ResumePage() {
       return;
     }
 
-    const resumeText = `
-      Name: ${resumeData.personalInfo.name}
-      Email: ${resumeData.personalInfo.email}
-      Phone: ${resumeData.personalInfo.phone}
-      Address: ${resumeData.personalInfo.address}
-      LinkedIn: ${resumeData.personalInfo.linkedin}
-      Portfolio: ${resumeData.personalInfo.portfolio}
-
-      Summary:
-      ${resumeData.summary}
-
-      Experience:
-      ${resumeData.experience
-        .map(
-          (exp) => `
-        ${exp.jobTitle} at ${exp.company}, ${exp.location} (${exp.startDate} - ${exp.endDate})
-        ${exp.description}
-      `
-        )
-        .join('\n')}
-
-      Education:
-      ${resumeData.education
-        .map(
-          (edu) => `
-        ${edu.degree} from ${edu.school}, ${edu.location} (Graduated: ${edu.graduationDate})
-      `
-        )
-        .join('\n')}
-
-      Projects:
-      ${resumeData.projects
-        ?.map(
-          (proj) => `
-        Project: ${proj.name}
-        Description: ${proj.description}
-        Link: ${proj.link}
-      `
-        )
-        .join('\n')}
-
-      Skills:
-      ${resumeData.skills.join(', ')}
-
-      Certifications:
-      ${resumeData.certifications
-        ?.map(
-          (cert) => `
-        ${cert.name} - ${cert.authority} (${cert.date}) - Link: ${cert.link || 'N/A'}
-      `
-        )
-        .join('\n')}
-      
-      Awards:
-      ${resumeData.awards
-        ?.map(
-          (award) => `
-        ${award.name} - Link: ${award.link || 'N/A'}
-      `
-        )
-        .join('\n')}
-      
-      Volunteer Experience:
-      ${resumeData.volunteerExperience
-        ?.map(
-          (vol) => `
-        ${vol.role} at ${vol.organization} (${vol.dates})
-        ${vol.description}
-      `
-        )
-        .join('\n')}
-        
-      Languages:
-      ${resumeData.languages
-        ?.map(
-          (lang) => `
-        ${lang.name} (${lang.proficiency})
-      `
-        )
-        .join('\n')}
-    `;
-
-    const sanitizedResume = sanitizeAndTrim(resumeText, 15000);
-    const sanitizedJobDescription = sanitizeAndTrim(jobDescription, 5000);
-
-    const result = await getAtsScore(sanitizedResume, sanitizedJobDescription);
+    const result = await getAtsScore(resumeData, jobDescription);
 
     if (result && 'error' in result) {
       console.error("ATS Scoring Error:", result.error);
