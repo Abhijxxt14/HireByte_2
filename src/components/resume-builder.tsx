@@ -341,7 +341,7 @@ export function ResumeBuilder({
           <Button
             size="icon"
             variant="ghost"
-            className="absolute bottom-1.5 right-1.5 h-7 w-7 text-muted-foreground transition-colors hover:text-primary"
+            className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary"
             onClick={() => handleSuggestions(section, currentText, context)}
             disabled={!!isSuggesting}
           >
@@ -404,8 +404,8 @@ export function ResumeBuilder({
             <AccordionContent className="space-y-2 pt-2">
                 <div className="relative">
                     <Label htmlFor="summary">Summary</Label>
-                    <Textarea id="summary" value={resumeData.summary} onChange={(e) => handleSummaryChange(e.target.value)} placeholder="Write a brief professional summary..." rows={4} className="pr-20"/>
-                    <div className="absolute bottom-1.5 right-1.5 flex gap-1">
+                    <Textarea id="summary" value={resumeData.summary} onChange={(e) => handleSummaryChange(e.target.value)} placeholder="Write a brief professional summary..." rows={4} className="pr-12"/>
+                    <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
                         {SpeechRecognition && (
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('summary')}>
                                 {isListening === 'summary' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
@@ -435,8 +435,8 @@ export function ResumeBuilder({
                   </div>
                   <div className="relative">
                     <Label>Description</Label>
-                    <Textarea value={exp.description} onChange={(e) => handleExperienceChange(index, "description", e.target.value)} rows={3} placeholder="- Key achievement 1..." className="pr-20"/>
-                     <div className="absolute bottom-1.5 right-1.5 flex gap-1">
+                    <Textarea value={exp.description} onChange={(e) => handleExperienceChange(index, "description", e.target.value)} rows={3} placeholder="- Key achievement 1..." className="pr-12"/>
+                     <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
                         {SpeechRecognition && (
                              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening(`experience-${index}`)}>
                                 {isListening === `experience-${index}` ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
@@ -483,8 +483,8 @@ export function ResumeBuilder({
                   <div><Label>Project Name</Label><Input value={proj.name} onChange={(e) => handleProjectChange(index, "name", e.target.value)} /></div>
                   <div className="relative">
                     <Label>Description</Label>
-                    <Textarea value={proj.description} onChange={(e) => handleProjectChange(index, "description", e.target.value)} rows={3} placeholder="Describe your project..." className="pr-20" />
-                    <div className="absolute bottom-1.5 right-1.5 flex gap-1">
+                    <Textarea value={proj.description} onChange={(e) => handleProjectChange(index, "description", e.target.value)} rows={3} placeholder="Describe your project..." className="pr-12" />
+                    <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
                         {SpeechRecognition && (
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening(`project-${index}`)}>
                                 {isListening === `project-${index}` ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
@@ -511,8 +511,8 @@ export function ResumeBuilder({
             <AccordionContent className="pt-2">
                 <div className="relative">
                     <Label htmlFor="skills">Skills (comma-separated)</Label>
-                    <Textarea id="skills" value={(resumeData.skills || []).join(", ")} onChange={(e) => handleSkillsChange(e.target.value)} className="pr-20"/>
-                     <div className="absolute bottom-1.5 right-1.5 flex gap-1">
+                    <Textarea id="skills" value={(resumeData.skills || []).join(", ")} onChange={(e) => handleSkillsChange(e.target.value)} className="pr-12"/>
+                     <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
                         {SpeechRecognition && (
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('skills')}>
                                 {isListening === 'skills' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
@@ -604,7 +604,7 @@ export function ResumeBuilder({
             <AccordionContent className="space-y-4 pt-2">
               <div className="relative">
                 <Label htmlFor="job-description">Job Description</Label>
-                <Textarea id="job-description" value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} placeholder="Paste the job description here..." rows={6} className="pr-10"/>
+                <Textarea id="job-description" value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} placeholder="Paste the job description here..." rows={6} className="pr-12"/>
                  {SpeechRecognition && (
                     <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('jobDescription')}>
                         {isListening === 'jobDescription' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
