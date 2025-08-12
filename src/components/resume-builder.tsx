@@ -10,8 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AtsScoreDisplay } from "@/components/ats-score-display";
-import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff, FolderKanban, Award, Languages, Handshake, Ribbon } from "lucide-react";
+import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff, FolderKanban, Award, Languages, Handshake, Ribbon, Wand2 } from "lucide-react";
 import React, { useState, useEffect, useRef } from 'react';
+import { getResumeSuggestions } from "@/lib/actions";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useToast } from "@/hooks/use-toast";
 
 const SpeechRecognition =
   (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition));
@@ -37,6 +40,25 @@ export function ResumeBuilder({
 }: ResumeBuilderProps) {
   const [isListening, setIsListening] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
+  const [isSuggesting, setIsSuggesting] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const { toast } = useToast();
+
+  const handleSuggestions = async (section: string, currentText?: string, context?: Record<string, string>) => {
+    setIsSuggesting(section);
+    setSuggestions([]);
+    const result = await getResumeSuggestions({ section, currentText, context });
+    if ("error" in result) {
+        toast({
+            variant: "destructive",
+            title: "Suggestion Error",
+            description: result.error,
+        });
+    } else {
+        setSuggestions(result.suggestions);
+    }
+    setIsSuggesting(null);
+  };
 
   useEffect(() => {
     if (!SpeechRecognition) {
@@ -288,6 +310,53 @@ export function ResumeBuilder({
     const newLang = (resumeData.languages || []).filter((_, i) => i !== index);
     setResumeData({ ...resumeData, languages: newLang });
   };
+  
+  const SuggestionPopover = ({
+      section,
+      currentText,
+      context,
+      onSelect,
+    }: {
+      section: string;
+      currentText?: string;
+      context?: Record<string, string>;
+      onSelect: (value: string) => void;
+    }) => (
+      <Popover onOpenChange={(open) => !open && setSuggestions([])}>
+        <PopoverTrigger asChild>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="absolute bottom-1.5 right-1.5 h-7 w-7 text-muted-foreground transition-colors hover:text-primary"
+            onClick={() => handleSuggestions(section, currentText, context)}
+            disabled={!!isSuggesting}
+          >
+            {isSuggesting === section ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80">
+          <div className="space-y-2">
+            <h4 className="font-medium leading-none">Suggestions</h4>
+            <div className="flex flex-col gap-2">
+              {suggestions.length > 0 ? (
+                suggestions.map((s, i) => (
+                  <Button
+                    key={i}
+                    variant="link"
+                    className="p-0 h-auto text-left whitespace-normal"
+                    onClick={() => onSelect(s)}
+                  >
+                    {s}
+                  </Button>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No suggestions available. Try adding more context.</p>
+              )}
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
 
   return (
     <Card className="shadow-2xl shadow-primary/10 transition-shadow duration-300 hover:shadow-primary/20">
@@ -321,12 +390,19 @@ export function ResumeBuilder({
             <AccordionContent className="space-y-2 pt-2">
                 <div className="relative">
                     <Label htmlFor="summary">Summary</Label>
-                    <Textarea id="summary" value={resumeData.summary} onChange={(e) => handleSummaryChange(e.target.value)} placeholder="Write a brief professional summary..." rows={4} className="pr-10"/>
-                    {SpeechRecognition && (
-                        <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('summary')}>
-                            {isListening === 'summary' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
-                        </Button>
-                    )}
+                    <Textarea id="summary" value={resumeData.summary} onChange={(e) => handleSummaryChange(e.target.value)} placeholder="Write a brief professional summary..." rows={4} className="pr-20"/>
+                    <div className="absolute bottom-1.5 right-1.5 flex gap-1">
+                        {SpeechRecognition && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('summary')}>
+                                {isListening === 'summary' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
+                            </Button>
+                        )}
+                        <SuggestionPopover
+                            section="Professional Summary"
+                            currentText={resumeData.summary}
+                            onSelect={handleSummaryChange}
+                        />
+                    </div>
                 </div>
             </AccordionContent>
           </AccordionItem>
@@ -345,12 +421,20 @@ export function ResumeBuilder({
                   </div>
                   <div className="relative">
                     <Label>Description</Label>
-                    <Textarea value={exp.description} onChange={(e) => handleExperienceChange(index, "description", e.target.value)} rows={3} placeholder="- Key achievement 1..." className="pr-10"/>
-                    {SpeechRecognition && (
-                         <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening(`experience-${index}`)}>
-                            {isListening === `experience-${index}` ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
-                        </Button>
-                    )}
+                    <Textarea value={exp.description} onChange={(e) => handleExperienceChange(index, "description", e.target.value)} rows={3} placeholder="- Key achievement 1..." className="pr-20"/>
+                     <div className="absolute bottom-1.5 right-1.5 flex gap-1">
+                        {SpeechRecognition && (
+                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening(`experience-${index}`)}>
+                                {isListening === `experience-${index}` ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
+                            </Button>
+                        )}
+                        <SuggestionPopover
+                          section="Experience Description"
+                          currentText={exp.description}
+                          context={{ jobTitle: exp.jobTitle, company: exp.company }}
+                          onSelect={(value) => handleExperienceChange(index, "description", value)}
+                        />
+                    </div>
                   </div>
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeExperience(index)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
@@ -385,12 +469,20 @@ export function ResumeBuilder({
                   <div><Label>Project Name</Label><Input value={proj.name} onChange={(e) => handleProjectChange(index, "name", e.target.value)} /></div>
                   <div className="relative">
                     <Label>Description</Label>
-                    <Textarea value={proj.description} onChange={(e) => handleProjectChange(index, "description", e.target.value)} rows={3} placeholder="Describe your project..." className="pr-10" />
-                    {SpeechRecognition && (
-                        <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening(`project-${index}`)}>
-                            {isListening === `project-${index}` ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
-                        </Button>
-                    )}
+                    <Textarea value={proj.description} onChange={(e) => handleProjectChange(index, "description", e.target.value)} rows={3} placeholder="Describe your project..." className="pr-20" />
+                    <div className="absolute bottom-1.5 right-1.5 flex gap-1">
+                        {SpeechRecognition && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening(`project-${index}`)}>
+                                {isListening === `project-${index}` ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
+                            </Button>
+                        )}
+                         <SuggestionPopover
+                            section="Project Description"
+                            currentText={proj.description}
+                            context={{ projectName: proj.name }}
+                            onSelect={(value) => handleProjectChange(index, "description", value)}
+                        />
+                    </div>
                   </div>
                   <div><Label>Demo Link</Label><Input value={proj.link} onChange={(e) => handleProjectChange(index, "link", e.target.value)} /></div>
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeProject(index)}><Trash2 className="h-4 w-4" /></Button>
@@ -405,12 +497,19 @@ export function ResumeBuilder({
             <AccordionContent className="pt-2">
                 <div className="relative">
                     <Label htmlFor="skills">Skills (comma-separated)</Label>
-                    <Textarea id="skills" value={(resumeData.skills || []).join(", ")} onChange={(e) => handleSkillsChange(e.target.value)} className="pr-10"/>
-                    {SpeechRecognition && (
-                        <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('skills')}>
-                            {isListening === 'skills' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
-                        </Button>
-                    )}
+                    <Textarea id="skills" value={(resumeData.skills || []).join(", ")} onChange={(e) => handleSkillsChange(e.target.value)} className="pr-20"/>
+                     <div className="absolute bottom-1.5 right-1.5 flex gap-1">
+                        {SpeechRecognition && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('skills')}>
+                                {isListening === 'skills' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
+                            </Button>
+                        )}
+                        <SuggestionPopover
+                            section="Skills"
+                            currentText={(resumeData.skills || []).join(", ")}
+                            onSelect={(value) => handleSkillsChange(value)}
+                        />
+                    </div>
                 </div>
             </AccordionContent>
           </AccordionItem>
@@ -424,7 +523,7 @@ export function ResumeBuilder({
                     <div><Label>Certification Name</Label><Input value={cert.name} onChange={(e) => handleCertificationChange(index, "name", e.target.value)} /></div>
                     <div><Label>Issuing Authority</Label><Input value={cert.authority} onChange={(e) => handleCertificationChange(index, "authority", e.target.value)} /></div>
                     <div><Label>Date Earned</Label><Input value={cert.date} onChange={(e) => handleCertificationChange(index, "date", e.target.value)} /></div>
-                    <div><Label>URL</Label><Input value={cert.link} onChange={(e) => handleCertificationChange(index, "link", e.target.value)} placeholder="https://example.com/cert" /></div>
+                    <div><Label>URL (optional)</Label><Input value={cert.link} onChange={(e) => handleCertificationChange(index, "link", e.target.value)} placeholder="https://example.com/cert" /></div>
                   </div>
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeCertification(index)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
@@ -440,7 +539,7 @@ export function ResumeBuilder({
                 <div key={award.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-1"><Label>Award/Achievement</Label><Input value={award.name} onChange={(e) => handleAwardChange(index, "name", e.target.value)} /></div>
-                    <div className="md:col-span-1"><Label>URL</Label><Input value={award.link} onChange={(e) => handleAwardChange(index, "link", e.target.value)} placeholder="https://example.com/award" /></div>
+                    <div className="md:col-span-1"><Label>URL (optional)</Label><Input value={award.link} onChange={(e) => handleAwardChange(index, "link", e.target.value)} placeholder="https://example.com/award" /></div>
                   </div>
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeAward(index)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
