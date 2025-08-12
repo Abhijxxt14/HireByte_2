@@ -13,8 +13,7 @@ const tokenizer = new WordTokenizer();
 // Helper to process text: tokenize, lowercase, remove stopwords, and stem
 const processTextToStems = (text: string): string[] => {
     if (!text) return [];
-    const tokens = tokenizer.tokenize(text.toLowerCase());
-    if (!tokens) return [];
+    const tokens = tokenizer.tokenize(text.toLowerCase()) || [];
     const filteredTokens = tokens.filter(token => !Stopwords.includes(token) && /^[a-z]+$/.test(token));
     return filteredTokens.map(token => PorterStemmer.stem(token));
 };
@@ -26,10 +25,7 @@ export function scoreResumeWithKeywords(
 ): KeywordAtsResult | { error: string } {
 
     try {
-        const jdTokens = tokenizer.tokenize(jobDescription.toLowerCase());
-        if (!jdTokens) {
-            return { score: 0, matchedKeywords: [], missingKeywords: [] };
-        }
+        const jdTokens = tokenizer.tokenize(jobDescription.toLowerCase()) || [];
         
         const originalKeywordsMap: { [key: string]: string } = {};
         const jdStems = new Set<string>();

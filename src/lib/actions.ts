@@ -27,17 +27,17 @@ export async function getAtsScore(
 
 
   // Construct searchable resume text blocks
-  const skillsText = resume.skills.join(' ');
+  const skillsText = resume.skills ? resume.skills.join(' ') : '';
   const experienceText = resume.experience
-    .map(e => `${e.jobTitle} ${e.description}`)
+    .map(e => `${e.jobTitle || ''} ${e.description || ''}`)
     .join(' ');
   
   const otherText = [
-    resume.summary,
-    resume.personalInfo.name,
-    ...resume.education.map(e => `${e.degree} ${e.school}`),
-    ...(resume.projects?.map(p => `${p.name} ${p.description}`) || []),
-  ].join(' ');
+    resume.summary || '',
+    resume.personalInfo.name || '',
+    ...(resume.education?.map(e => `${e.degree || ''} ${e.school || ''}`) || []),
+    ...(resume.projects?.map(p => `${p.name || ''} ${p.description || ''}`) || []),
+  ].filter(Boolean).join(' ');
 
   const resumeTextSections = {
     skills: sanitizeAndTrim(skillsText, 10000),
