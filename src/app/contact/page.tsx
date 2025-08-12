@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { FileText, Mail } from 'lucide-react';
+import { FileText, Mail, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ContactPage() {
@@ -82,6 +82,12 @@ export default function ContactPage() {
               </div>
               <Button onClick={handleSendMessage} className="w-full">
                   Send Message
+              </Button>
+               <Button variant="outline" className="w-full" asChild>
+                <Link href="/">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Home
+                </Link>
               </Button>
             </div>
           </CardContent>
