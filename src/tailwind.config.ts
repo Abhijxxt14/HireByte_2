@@ -97,15 +97,10 @@ export default {
             transform: 'translateY(-10px)'
           },
         },
-        'flip': {
-            '0%': { transform: 'rotateY(0deg)' },
-            '100%': { transform: 'rotateY(360deg)' },
-        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.3s ease-out',
         'accordion-up': 'accordion-up 0.3s ease-out',
-        'flip': 'flip 0.5s ease-in-out',
       },
     },
   },
