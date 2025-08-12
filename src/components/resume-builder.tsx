@@ -205,21 +205,21 @@ export function ResumeBuilder({
   };
   
   return (
-    <Card className="shadow-lg">
+    <Card className="shadow-2xl shadow-primary/10 transition-shadow duration-300 hover:shadow-primary/20">
       <CardHeader>
         <div className="flex items-center gap-3">
           <Bot className="h-8 w-8 text-primary" />
           <div>
-            <CardTitle className="font-headline">Resume Builder</CardTitle>
+            <CardTitle className="font-headline text-3xl">Resume Editor</CardTitle>
             <CardDescription>Fill out the sections below to create your resume.</CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <Accordion type="single" collapsible defaultValue="personal-info">
+        <Accordion type="single" collapsible defaultValue="personal-info" className="w-full">
           <AccordionItem value="personal-info">
-            <AccordionTrigger className="font-semibold"><User className="mr-2"/>Personal Information</AccordionTrigger>
-            <AccordionContent className="space-y-4 p-1">
+            <AccordionTrigger className="text-lg font-semibold"><User className="mr-3 h-5 w-5 text-primary"/>Personal Information</AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><Label htmlFor="name">Full Name</Label><Input id="name" value={resumeData.personalInfo.name} onChange={(e) => handlePersonalInfoChange("name", e.target.value)} /></div>
                 <div><Label htmlFor="email">Email</Label><Input id="email" type="email" value={resumeData.personalInfo.email} onChange={(e) => handlePersonalInfoChange("email", e.target.value)} /></div>
@@ -232,13 +232,13 @@ export function ResumeBuilder({
           </AccordionItem>
 
           <AccordionItem value="summary">
-            <AccordionTrigger className="font-semibold"><Briefcase className="mr-2"/>Professional Summary</AccordionTrigger>
-            <AccordionContent className="space-y-2 p-1">
+            <AccordionTrigger className="text-lg font-semibold"><Briefcase className="mr-3 h-5 w-5 text-primary"/>Professional Summary</AccordionTrigger>
+            <AccordionContent className="space-y-2 pt-2">
                 <div className="relative">
                     <Label htmlFor="summary">Summary</Label>
                     <Textarea id="summary" value={resumeData.summary} onChange={(e) => handleSummaryChange(e.target.value)} placeholder="Write a brief professional summary..." rows={4} className="pr-10"/>
                     {SpeechRecognition && (
-                        <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground" onClick={() => toggleListening('summary')}>
+                        <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('summary')}>
                             {isListening === 'summary' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
                         </Button>
                     )}
@@ -247,10 +247,10 @@ export function ResumeBuilder({
           </AccordionItem>
 
           <AccordionItem value="experience">
-            <AccordionTrigger className="font-semibold"><Briefcase className="mr-2"/>Work Experience</AccordionTrigger>
-            <AccordionContent className="space-y-4 p-1">
+            <AccordionTrigger className="text-lg font-semibold"><Briefcase className="mr-3 h-5 w-5 text-primary"/>Work Experience</AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2">
               {resumeData.experience.map((exp, index) => (
-                <div key={exp.id} className="p-4 border rounded-lg space-y-4 relative">
+                <div key={exp.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div><Label>Job Title</Label><Input value={exp.jobTitle} onChange={(e) => handleExperienceChange(index, "jobTitle", e.target.value)} /></div>
                     <div><Label>Company</Label><Input value={exp.company} onChange={(e) => handleExperienceChange(index, "company", e.target.value)} /></div>
@@ -262,67 +262,67 @@ export function ResumeBuilder({
                     <Label>Description</Label>
                     <Textarea value={exp.description} onChange={(e) => handleExperienceChange(index, "description", e.target.value)} rows={3} placeholder="- Key achievement 1..." className="pr-10"/>
                     {SpeechRecognition && (
-                         <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground" onClick={() => toggleListening(`experience-${index}`)}>
+                         <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening(`experience-${index}`)}>
                             {isListening === `experience-${index}` ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
                         </Button>
                     )}
                   </div>
-                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground hover:text-destructive" onClick={() => removeExperience(index)}><Trash2 className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeExperience(index)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
               ))}
-              <Button variant="outline" onClick={addExperience}><PlusCircle className="mr-2"/>Add Experience</Button>
+              <Button variant="outline" onClick={addExperience} className="transition-transform hover:scale-105"><PlusCircle className="mr-2"/>Add Experience</Button>
             </AccordionContent>
           </AccordionItem>
 
           <AccordionItem value="education">
-            <AccordionTrigger className="font-semibold"><GraduationCap className="mr-2"/>Education</AccordionTrigger>
-            <AccordionContent className="space-y-4 p-1">
+            <AccordionTrigger className="text-lg font-semibold"><GraduationCap className="mr-3 h-5 w-5 text-primary"/>Education</AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2">
               {resumeData.education.map((edu, index) => (
-                <div key={edu.id} className="p-4 border rounded-lg space-y-4 relative">
+                <div key={edu.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div><Label>School/University</Label><Input value={edu.school} onChange={(e) => handleEducationChange(index, "school", e.target.value)} /></div>
                     <div><Label>Degree & Major</Label><Input value={edu.degree} onChange={(e) => handleEducationChange(index, "degree", e.target.value)} /></div>
                     <div><Label>Location</Label><Input value={edu.location} onChange={(e) => handleEducationChange(index, "location", e.target.value)} /></div>
                     <div><Label>Graduation Date</Label><Input value={edu.graduationDate} onChange={(e) => handleEducationChange(index, "graduationDate", e.target.value)} /></div>
                   </div>
-                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground hover:text-destructive" onClick={() => removeEducation(index)}><Trash2 className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeEducation(index)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
               ))}
-              <Button variant="outline" onClick={addEducation}><PlusCircle className="mr-2"/>Add Education</Button>
+              <Button variant="outline" onClick={addEducation} className="transition-transform hover:scale-105"><PlusCircle className="mr-2"/>Add Education</Button>
             </AccordionContent>
           </AccordionItem>
 
           <AccordionItem value="projects">
-            <AccordionTrigger className="font-semibold"><FolderKanban className="mr-2"/>Projects</AccordionTrigger>
-            <AccordionContent className="space-y-4 p-1">
+            <AccordionTrigger className="text-lg font-semibold"><FolderKanban className="mr-3 h-5 w-5 text-primary"/>Projects</AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2">
               {resumeData.projects.map((proj, index) => (
-                <div key={proj.id} className="p-4 border rounded-lg space-y-4 relative">
+                <div key={proj.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
                   <div><Label>Project Name</Label><Input value={proj.name} onChange={(e) => handleProjectChange(index, "name", e.target.value)} /></div>
                   <div className="relative">
                     <Label>Description</Label>
                     <Textarea value={proj.description} onChange={(e) => handleProjectChange(index, "description", e.target.value)} rows={3} placeholder="Describe your project..." className="pr-10" />
                     {SpeechRecognition && (
-                        <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground" onClick={() => toggleListening(`project-${index}`)}>
+                        <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening(`project-${index}`)}>
                             {isListening === `project-${index}` ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
                         </Button>
                     )}
                   </div>
                   <div><Label>Demo Link</Label><Input value={proj.link} onChange={(e) => handleProjectChange(index, "link", e.target.value)} /></div>
-                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground hover:text-destructive" onClick={() => removeProject(index)}><Trash2 className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeProject(index)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
               ))}
-              <Button variant="outline" onClick={addProject}><PlusCircle className="mr-2"/>Add Project</Button>
+              <Button variant="outline" onClick={addProject} className="transition-transform hover:scale-105"><PlusCircle className="mr-2"/>Add Project</Button>
             </AccordionContent>
           </AccordionItem>
 
           <AccordionItem value="skills">
-            <AccordionTrigger className="font-semibold"><Wrench className="mr-2"/>Skills</AccordionTrigger>
-            <AccordionContent className="p-1">
+            <AccordionTrigger className="text-lg font-semibold"><Wrench className="mr-3 h-5 w-5 text-primary"/>Skills</AccordionTrigger>
+            <AccordionContent className="pt-2">
                 <div className="relative">
                     <Label htmlFor="skills">Skills (comma-separated)</Label>
                     <Textarea id="skills" value={resumeData.skills.join(", ")} onChange={(e) => handleSkillsChange(e.target.value)} className="pr-10"/>
                     {SpeechRecognition && (
-                        <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground" onClick={() => toggleListening('skills')}>
+                        <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('skills')}>
                             {isListening === 'skills' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
                         </Button>
                     )}
@@ -331,19 +331,19 @@ export function ResumeBuilder({
           </AccordionItem>
           
           <AccordionItem value="ats-score">
-            <AccordionTrigger className="font-semibold"><BrainCircuit className="mr-2"/>ATS Score</AccordionTrigger>
-            <AccordionContent className="space-y-4 p-1">
+            <AccordionTrigger className="text-lg font-semibold"><BrainCircuit className="mr-3 h-5 w-5 text-primary"/>ATS Score Analysis</AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2">
               <div className="relative">
                 <Label htmlFor="job-description">Job Description</Label>
                 <Textarea id="job-description" value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} placeholder="Paste the job description here..." rows={6} className="pr-10"/>
                  {SpeechRecognition && (
-                    <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground" onClick={() => toggleListening('jobDescription')}>
+                    <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('jobDescription')}>
                         {isListening === 'jobDescription' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
                     </Button>
                 )}
               </div>
               <div className="flex flex-col sm:flex-row gap-2">
-                <Button onClick={handleScore} disabled={isLoading} className="w-full bg-[hsl(var(--accent))] text-accent-foreground hover:bg-[hsl(var(--accent)/0.9)]">
+                <Button onClick={handleScore} disabled={isLoading} className="w-full bg-[hsl(var(--accent))] text-accent-foreground hover:bg-[hsl(var(--accent)/0.9)] transition-transform hover:scale-105 active:scale-100">
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     {isLoading ? "Analyzing..." : "Analyze and Score Built Resume"}
                 </Button>

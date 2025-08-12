@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import type { Resume } from "@/lib/types";
 import { Download, Mail, Phone, Linkedin, Globe, MapPin, ExternalLink } from "lucide-react";
 
@@ -24,17 +23,17 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
   }
 
   return (
-    <Card className="shadow-lg">
+    <Card className="shadow-2xl shadow-primary/10 transition-shadow duration-300 hover:shadow-primary/20">
       <CardContent className="p-0">
         <div id="resume-preview" className="bg-card text-card-foreground p-8 rounded-lg aspect-[8.5/11]">
           <header className="text-center mb-6">
             <h1 className="text-3xl font-bold font-headline tracking-tight">{resumeData.personalInfo.name}</h1>
             <div className="flex justify-center items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mt-2 flex-wrap">
               <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {resumeData.personalInfo.address}</span>
-              <a href={`mailto:${resumeData.personalInfo.email}`} className="flex items-center gap-1.5 hover:text-primary"><Mail className="h-3 w-3" /> {resumeData.personalInfo.email}</a>
+              <a href={`mailto:${resumeData.personalInfo.email}`} className="flex items-center gap-1.5 hover:text-primary transition-colors"><Mail className="h-3 w-3" /> {resumeData.personalInfo.email}</a>
               <span className="flex items-center gap-1.5"><Phone className="h-3 w-3" /> {resumeData.personalInfo.phone}</span>
-              {resumeData.personalInfo.linkedin && <a href={ensureUrlScheme(resumeData.personalInfo.linkedin)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary"><Linkedin className="h-3 w-3" /> {resumeData.personalInfo.linkedin}</a>}
-              {resumeData.personalInfo.portfolio && <a href={ensureUrlScheme(resumeData.personalInfo.portfolio)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary"><Globe className="h-3 w-3" /> {resumeData.personalInfo.portfolio}</a>}
+              {resumeData.personalInfo.linkedin && <a href={ensureUrlScheme(resumeData.personalInfo.linkedin)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors"><Linkedin className="h-3 w-3" /> {resumeData.personalInfo.linkedin}</a>}
+              {resumeData.personalInfo.portfolio && <a href={ensureUrlScheme(resumeData.personalInfo.portfolio)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors"><Globe className="h-3 w-3" /> {resumeData.personalInfo.portfolio}</a>}
             </div>
           </header>
 
@@ -73,7 +72,7 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
                     <div className="flex justify-between items-baseline">
                       <h3 className="font-semibold">{proj.name}</h3>
                       {proj.link && (
-                         <a href={ensureUrlScheme(proj.link)} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
+                         <a href={ensureUrlScheme(proj.link)} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 transition-colors">
                             Live Demo <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
@@ -106,7 +105,7 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
               <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">Skills</h2>
               <div className="flex flex-wrap gap-2">
                 {resumeData.skills.map((skill) => (
-                  <span key={skill} className="bg-primary/10 text-primary text-xs font-medium px-2.5 py-1 rounded-full">{skill}</span>
+                  <span key={skill} className="bg-primary/10 text-primary text-xs font-medium px-2.5 py-1 rounded-full transition-colors hover:bg-primary/20">{skill}</span>
                 ))}
               </div>
             </div>
@@ -114,7 +113,7 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
           </main>
         </div>
         <div className="p-4 border-t no-print">
-            <Button onClick={handlePrint} className="w-full">
+            <Button onClick={handlePrint} className="w-full transition-transform hover:scale-105 active:scale-100">
             <Download className="mr-2 h-4 w-4" />
             Download PDF
             </Button>

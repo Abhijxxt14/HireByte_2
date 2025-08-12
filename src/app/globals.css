@@ -8,19 +8,19 @@ body {
 
 @layer base {
   :root {
-    --background: 160 13% 95%;
+    --background: 160 13% 95%; /* #F0F4F3 */
     --foreground: 215 25% 27%;
     --card: 0 0% 100%;
     --card-foreground: 215 25% 27%;
     --popover: 0 0% 100%;
     --popover-foreground: 215 25% 27%;
-    --primary: 174 43% 51%;
+    --primary: 174 43% 51%; /* #4DB6AC */
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
     --muted: 0 0% 90%;
     --muted-foreground: 0 0% 45.1%;
-    --accent: 17 100% 78%;
+    --accent: 17 100% 78%; /* #FFAB91 */
     --accent-foreground: 215 25% 27%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -84,6 +84,10 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+  /* Add a transition for a smoother dark mode toggle */
+  body, html {
+    @apply transition-colors duration-300;
   }
 }
 

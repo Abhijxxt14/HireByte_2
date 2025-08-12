@@ -105,13 +105,13 @@ export default function ResumePage() {
 
   return (
     <div className="container mx-auto p-4 md:p-8">
-      <header className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 mb-2">
-          <FileText className="h-8 w-8 text-primary" />
-          <h1 className="text-4xl font-bold font-headline">ATS Resume Ace</h1>
+      <header className="text-center mb-12">
+        <div className="inline-flex items-center gap-3 mb-4">
+          <FileText className="h-10 w-10 text-primary" />
+          <h1 className="text-5xl font-bold font-headline tracking-tight">ATS Resume Ace</h1>
         </div>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Build a professional, ATS-friendly resume with our guided chatbot. Then, score it against a job description to improve your chances.
+        <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+          Build a professional, ATS-friendly resume with our guided editor. Then, score it against a job description to land your dream job.
         </p>
       </header>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
