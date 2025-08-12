@@ -8,33 +8,27 @@ import ResumePage from './resume-page';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { SplashScreen } from '@/components/splash-screen';
 
-const SPLASH_SEEN_KEY = 'firebase-studio-splash-seen';
-
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    // Check session storage to see if splash has been shown
-    const splashSeen = sessionStorage.getItem(SPLASH_SEEN_KEY);
-    if (splashSeen) {
+    // Show splash for 5 seconds then fade out
+    const timer = setTimeout(() => {
       setShowSplash(false);
-    } else {
-      // Show splash for 5 seconds then fade out
-      const timer = setTimeout(() => {
-        setShowSplash(false);
-        sessionStorage.setItem(SPLASH_SEEN_KEY, 'true');
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
+    }, 5000);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
+    // Do not check for user until splash is hidden
+    if (showSplash) return;
+
     if (!authLoading && !user) {
       router.replace('/login');
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, showSplash]);
 
   if (showSplash) {
     return <SplashScreen />;

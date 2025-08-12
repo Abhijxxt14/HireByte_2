@@ -147,7 +147,7 @@ body {
     to { width: 100%; }
   }
   .animate-typewriter {
-    animation: typewriter 2s steps(40, end);
+    animation: typewriter 2s steps(8, end);
     animation-delay: 1.5s;
     animation-fill-mode: forwards;
   }
