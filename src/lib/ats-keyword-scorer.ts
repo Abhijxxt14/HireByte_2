@@ -31,7 +31,7 @@ export function scoreResumeWithKeywords(
     const resumeStems = {
         skills: new Set(processTextToStems(resumeSections.skills)),
         experience: new Set(processTextToStems(resumeSections.experience)),
-        other: new Set(processTextToTems(resumeSections.other)),
+        other: new Set(processTextToStems(resumeSections.other)),
     }
 
     let weightedScore = 0;
@@ -90,10 +90,4 @@ export function scoreResumeWithKeywords(
         matchedKeywords: [...new Set(matchedKeywords)], // Ensure uniqueness
         missingKeywords: [...new Set(missingKeywords)], // Ensure uniqueness
     };
-}
-
-// A simple alias to handle a potential typo in my thinking process
-// and ensure the code remains stable.
-function processTextToTems(text: string): string[] {
-    return processTextToStems(text);
 }
