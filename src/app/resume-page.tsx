@@ -11,6 +11,7 @@ import { ResumePreview } from '@/components/resume-preview';
 import { useToast } from '@/hooks/use-toast';
 import { FileText } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { UserNav } from '@/components/auth/user-nav';
 
 const RESUME_STORAGE_KEY = 'firebase-studio-resume-data';
 
@@ -110,18 +111,23 @@ export default function ResumePage() {
   return (
     <div className="relative isolate min-h-screen w-full bg-background">
       <div className="container mx-auto p-4 md:p-8 relative z-10">
-        <header className="text-center mb-12 relative">
-          <div className="absolute top-0 right-0">
-            <ThemeToggle />
-          </div>
-          <div className="inline-flex items-center gap-3 mb-4">
-            <FileText className="h-10 w-10 text-primary" />
-            <h1 className="text-5xl font-bold font-headline tracking-tight">ATS Resume Ace</h1>
-          </div>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Build a professional, ATS-friendly resume with our guided editor. Then, score it against a job description to land your dream job.
-          </p>
+        <header className="flex justify-between items-center mb-12">
+            <div className="inline-flex items-center gap-3">
+              <FileText className="h-10 w-10 text-primary" />
+              <h1 className="text-3xl sm:text-5xl font-bold font-headline tracking-tight">ATS Resume Ace</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <UserNav />
+            </div>
         </header>
+
+        <div className="text-center mb-12">
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+                Build a professional, ATS-friendly resume with our guided editor. Then, score it against a job description to land your dream job.
+            </p>
+        </div>
+        
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <ResumeBuilder
             resumeData={resumeData}
