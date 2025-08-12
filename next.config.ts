@@ -19,6 +19,8 @@ const nextConfig: NextConfig = {
     ],
   },
   webpack: (config) => {
+    // See https://github.com/pmndrs/react-spring/issues/1586
+    config.externals.push('three');
     return config;
   },
 };
