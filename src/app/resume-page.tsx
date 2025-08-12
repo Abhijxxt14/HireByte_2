@@ -95,25 +95,25 @@ export default function ResumePage() {
 
       Certifications:
       ${resumeData.certifications
-        .map(
+        ?.map(
           (cert) => `
-        ${cert.name} - ${cert.authority} (${cert.date})
+        ${cert.name} - ${cert.authority} (${cert.date}) - Link: ${cert.link || 'N/A'}
       `
         )
         .join('\n')}
       
       Awards:
       ${resumeData.awards
-        .map(
+        ?.map(
           (award) => `
-        ${award.name}
+        ${award.name} - Link: ${award.link || 'N/A'}
       `
         )
         .join('\n')}
       
       Volunteer Experience:
       ${resumeData.volunteerExperience
-        .map(
+        ?.map(
           (vol) => `
         ${vol.role} at ${vol.organization} (${vol.dates})
         ${vol.description}
@@ -123,7 +123,7 @@ export default function ResumePage() {
         
       Languages:
       ${resumeData.languages
-        .map(
+        ?.map(
           (lang) => `
         ${lang.name} (${lang.proficiency})
       `

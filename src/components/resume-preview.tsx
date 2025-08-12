@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Resume } from "@/lib/types";
-import { Download, Mail, Phone, Linkedin, Globe, MapPin, ExternalLink } from "lucide-react";
+import { Download, Mail, Phone, Linkedin, Globe, MapPin, ExternalLink, Link as LinkIcon } from "lucide-react";
 
 interface ResumePreviewProps {
   resumeData: Resume;
@@ -116,7 +116,14 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
             {renderSection("Certifications", resumeData.certifications, (cert) => (
                 <div key={cert.id}>
                     <div className="flex justify-between items-baseline">
-                        <h3 className="font-semibold">{cert.name}</h3>
+                        <div className="flex items-center gap-2">
+                           <h3 className="font-semibold">{cert.name}</h3>
+                            {cert.link && (
+                                <a href={ensureUrlScheme(cert.link)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1 transition-colors">
+                                    <LinkIcon className="h-3 w-3" />
+                                </a>
+                            )}
+                        </div>
                         <span className="text-xs text-muted-foreground">{cert.date}</span>
                     </div>
                     <p className="italic text-muted-foreground">{cert.authority}</p>
@@ -124,7 +131,14 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
             ))}
 
             {renderSimpleListSection("Awards & Achievements", resumeData.awards, (award) => (
-                <li key={award.id}>{award.name}</li>
+                 <li key={award.id} className="flex items-center gap-2">
+                    <span>{award.name}</span>
+                    {award.link && (
+                        <a href={ensureUrlScheme(award.link)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1 transition-colors">
+                            <LinkIcon className="h-3 w-3" />
+                        </a>
+                    )}
+                </li>
             ))}
 
             {renderSection("Volunteer Experience", resumeData.volunteerExperience, (vol) => (

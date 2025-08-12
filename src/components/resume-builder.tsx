@@ -216,7 +216,7 @@ export function ResumeBuilder({
       ...resumeData,
       certifications: [
         ...(resumeData.certifications || []),
-        { id: crypto.randomUUID(), name: "", authority: "", date: "" },
+        { id: crypto.randomUUID(), name: "", authority: "", date: "", link: "" },
       ],
     });
   };
@@ -226,9 +226,9 @@ export function ResumeBuilder({
     setResumeData({ ...resumeData, certifications: newCerts });
   };
 
-  const handleAwardChange = (index: number, value: string) => {
+  const handleAwardChange = (index: number, field: string, value: string) => {
     const newAwards = [...(resumeData.awards || [])];
-    newAwards[index] = { ...newAwards[index], name: value };
+    newAwards[index] = { ...newAwards[index], [field]: value };
     setResumeData({ ...resumeData, awards: newAwards });
   };
 
@@ -237,7 +237,7 @@ export function ResumeBuilder({
       ...resumeData,
       awards: [
         ...(resumeData.awards || []),
-        { id: crypto.randomUUID(), name: "" },
+        { id: crypto.randomUUID(), name: "", link: "" },
       ],
     });
   };
@@ -424,6 +424,7 @@ export function ResumeBuilder({
                     <div><Label>Certification Name</Label><Input value={cert.name} onChange={(e) => handleCertificationChange(index, "name", e.target.value)} /></div>
                     <div><Label>Issuing Authority</Label><Input value={cert.authority} onChange={(e) => handleCertificationChange(index, "authority", e.target.value)} /></div>
                     <div><Label>Date Earned</Label><Input value={cert.date} onChange={(e) => handleCertificationChange(index, "date", e.target.value)} /></div>
+                    <div><Label>URL</Label><Input value={cert.link} onChange={(e) => handleCertificationChange(index, "link", e.target.value)} placeholder="https://example.com/cert" /></div>
                   </div>
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeCertification(index)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
@@ -437,7 +438,10 @@ export function ResumeBuilder({
             <AccordionContent className="space-y-4 pt-2">
               {resumeData.awards?.map((award, index) => (
                 <div key={award.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
-                  <div><Label>Award/Achievement</Label><Input value={award.name} onChange={(e) => handleAwardChange(index, e.target.value)} /></div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-1"><Label>Award/Achievement</Label><Input value={award.name} onChange={(e) => handleAwardChange(index, "name", e.target.value)} /></div>
+                    <div className="md:col-span-1"><Label>URL</Label><Input value={award.link} onChange={(e) => handleAwardChange(index, "link", e.target.value)} placeholder="https://example.com/award" /></div>
+                  </div>
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeAward(index)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
               ))}

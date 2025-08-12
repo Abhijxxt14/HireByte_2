@@ -37,11 +37,13 @@ export interface Certification {
   name: string;
   authority: string;
   date: string;
+  link?: string;
 }
 
 export interface Award {
   id: string;
   name: string;
+  link?: string;
 }
 
 export interface VolunteerExperience {

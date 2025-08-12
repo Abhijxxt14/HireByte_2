@@ -73,10 +73,10 @@ export const initialResumeData: Resume = {
     }
   ],
   certifications: [
-      { id: "cert1", name: "Certified Kubernetes Application Developer", authority: "The Linux Foundation", date: "Feb 2023" }
+      { id: "cert1", name: "Certified Kubernetes Application Developer", authority: "The Linux Foundation", date: "Feb 2023", link: "https://example.com/cert" }
   ],
   awards: [
-      { id: "award1", name: "Employee of the Quarter - Q4 2022" }
+      { id: "award1", name: "Employee of the Quarter - Q4 2022", link: "https://example.com/award" }
   ],
   volunteerExperience: [
       { id: "vol1", role: "Mentor", organization: "Code for America", dates: "2022 - Present", description: "Mentored aspiring developers in web development fundamentals."}
