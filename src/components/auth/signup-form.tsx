@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -21,6 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import Link from 'next/link';
+import { LoadingSpinner } from '../ui/loading-spinner';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -137,7 +138,7 @@ export function SignUpForm() {
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <Button disabled={isLoading} className="w-full bg-primary hover:bg-primary/90">
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading && <LoadingSpinner size={20} className="mr-2"/>}
             Create Account
           </Button>
 

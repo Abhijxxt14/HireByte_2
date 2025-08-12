@@ -7,7 +7,7 @@ import { useAuth } from '@/context/auth-context';
 import { SignUpForm } from '@/components/auth/signup-form';
 import Link from 'next/link';
 import { FileText } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function SignUpPage() {
   const { user, loading } = useAuth();
@@ -22,13 +22,7 @@ export default function SignUpPage() {
   if (loading || user) {
      return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4">
-             <div className="flex items-center space-x-4 p-4">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-[250px]" />
-                    <Skeleton className="h-4 w-[200px]" />
-                </div>
-            </div>
+             <LoadingSpinner size={64} />
             <p className="text-muted-foreground mt-4">Redirecting...</p>
         </div>
     );

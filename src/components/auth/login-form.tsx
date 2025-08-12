@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -30,6 +30,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import Link from 'next/link';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const loginFormSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -165,7 +166,7 @@ export function LoginForm() {
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
             <Button disabled={isLoading} className="w-full bg-primary hover:bg-primary/90 transition-transform hover:scale-[1.02] active:scale-[0.98]">
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLoading && <LoadingSpinner size={20} className="mr-2"/>}
                 Sign In
             </Button>
             
@@ -200,7 +201,7 @@ export function LoginForm() {
                 </div>
                 <DialogFooter className="pt-4">
                     <Button type="submit" disabled={isResetLoading} className="w-full">
-                        {isResetLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isResetLoading && <LoadingSpinner size={20} className="mr-2"/>}
                         Send Reset Email
                     </Button>
                 </DialogFooter>

@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { LoginForm } from '@/components/auth/login-form';
 import Link from 'next/link';
-import { FileText, Loader2 } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { FileText } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 
 export default function LoginPage() {
@@ -24,7 +24,7 @@ export default function LoginPage() {
   if (loading || user) {
      return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <LoadingSpinner size={64}/>
             <p className="text-muted-foreground mt-4">Loading session...</p>
         </div>
     );
