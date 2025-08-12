@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
     return url;
   }
 
-  const renderSection = (title: string, data: any[], renderItem: (item: any, index: number) => React.ReactNode) => {
+  const renderSection = (title: string, data: any[] | undefined, renderItem: (item: any, index: number) => React.ReactNode) => {
     if (!data || data.length === 0) return null;
     return (
       <div>
@@ -34,7 +35,7 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
     );
   };
   
-  const renderSimpleListSection = (title: string, data: any[], renderItem: (item: any, index: number) => React.ReactNode) => {
+  const renderSimpleListSection = (title: string, data: any[] | undefined, renderItem: (item: any, index: number) => React.ReactNode) => {
      if (!data || data.length === 0) return null;
       return (
         <div>
