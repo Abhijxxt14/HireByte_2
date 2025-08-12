@@ -18,11 +18,13 @@ export default function ContactPage() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
 
-  const recipientEmail = 'jeebankrushnasahu1@gmail.com';
-  const subject = `Message from ${name} (${email}) via HireByte`;
-  const body = `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`;
-
-  const mailtoHref = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const handleSendMessage = () => {
+    const recipientEmail = 'jeebankrushnasahu1@gmail.com';
+    const subject = `Message from ${name} (${email}) via HireByte`;
+    const body = `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`;
+    const mailtoHref = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoHref;
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -78,10 +80,8 @@ export default function ContactPage() {
                   onChange={(e) => setMessage(e.target.value)}
                 />
               </div>
-              <Button asChild className="w-full">
-                <a href={mailtoHref}>
+              <Button onClick={handleSendMessage} className="w-full">
                   Send Message
-                </a>
               </Button>
             </div>
           </CardContent>
