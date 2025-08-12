@@ -15,11 +15,6 @@ import * as pdfjs from 'pdfjs-dist';
 import { getAtsScore } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 
-if (typeof window !== 'undefined') {
-    pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
-}
-
-// SpeechRecognition API might not be available on all browsers
 const SpeechRecognition =
   (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition));
 
@@ -52,6 +47,11 @@ export function ResumeBuilder({
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
 
+  useEffect(() => {
+    // This ensures pdfjs.GlobalWorkerOptions.workerSrc is set only on the client side.
+    pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+  }, []);
+
   const handlePdfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -66,7 +66,7 @@ export function ResumeBuilder({
     }
     
     setIsUploading(true);
-    setIsLoading(true); // Use the main loading state
+    setIsLoading(true);
     setAtsResult(null);
 
     const reader = new FileReader();
@@ -78,7 +78,7 @@ export function ResumeBuilder({
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const content = await page.getTextContent();
-                resumeText += content.items.map((item: any) => item.str).join(' ') + '\n';
+                resumeText += content.items.map((item: any) => 'str' in item ? item.str : '').join(' ') + '\n';
             }
             
             const result = await getAtsScore(resumeText, jobDescription);
@@ -105,7 +105,6 @@ export function ResumeBuilder({
         } finally {
             setIsUploading(false);
             setIsLoading(false);
-            // Clear the file input so the same file can be uploaded again
             if(fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
@@ -169,7 +168,7 @@ export function ResumeBuilder({
 
     recognition.onend = () => {
         if (isListening) {
-            recognition.start(); // Keep listening if it was not manually stopped
+            recognition.start();
         }
     };
 
