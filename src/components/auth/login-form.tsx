@@ -97,10 +97,14 @@ export function LoginForm() {
       router.refresh();
     } catch (error: any) {
         console.error("Google Sign-In Error:", error);
+        let description = 'An unexpected error occurred. Please try again.';
+        if (error.code === 'auth/unauthorized-domain') {
+            description = "This domain is not authorized for Google Sign-In. Please add 'localhost' to the authorized domains in your Firebase project settings.";
+        }
         toast({
             variant: 'destructive',
             title: 'Google Sign-In Failed',
-            description: error.message || 'An unexpected error occurred. Please try again.',
+            description: description,
         });
     } finally {
         setIsGoogleLoading(false);
