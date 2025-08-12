@@ -197,6 +197,9 @@ body {
 
 
 @media print {
+  body, html {
+    background: #fff;
+  }
   body * {
     visibility: hidden;
   }
@@ -216,8 +219,11 @@ body {
     border: none;
     box-shadow: none;
     transform: scale(1);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .no-print {
     display: none !important;
   }
 }
+

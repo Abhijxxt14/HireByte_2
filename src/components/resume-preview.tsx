@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Resume } from "@/lib/types";
 import { Download, Mail, Phone, Linkedin, Globe, MapPin, ExternalLink, Link as LinkIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ResumePreviewProps {
   resumeData: Resume;
@@ -26,55 +27,55 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
   const renderSection = (title: string, data: any[] | undefined, renderItem: (item: any, index: number) => React.ReactNode) => {
     if (!data || data.length === 0) return null;
     return (
-      <div>
+      <section className="mb-4 md:mb-6">
         <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">{title}</h2>
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           {data.map(renderItem)}
         </div>
-      </div>
+      </section>
     );
   };
   
   const renderSimpleListSection = (title: string, data: any[] | undefined, renderItem: (item: any, index: number) => React.ReactNode) => {
      if (!data || data.length === 0) return null;
       return (
-        <div>
+        <section className="mb-4 md:mb-6">
           <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">{title}</h2>
           <ul className="list-disc list-inside mt-1 text-sm text-muted-foreground/90">
             {data.map(renderItem)}
           </ul>
-        </div>
+        </section>
       );
   }
 
   return (
     <Card className="shadow-2xl shadow-primary/10 transition-shadow duration-300 hover:shadow-primary/20">
       <CardContent className="p-0">
-        <div id="resume-preview" className="bg-card text-card-foreground p-8 rounded-lg aspect-[8.5/11]">
+        <div id="resume-preview" className="bg-card text-card-foreground p-6 md:p-8 rounded-lg md:aspect-[8.5/11]">
           <header className="text-center mb-6">
-            <h1 className="text-3xl font-bold font-headline tracking-tight">{resumeData.personalInfo.name}</h1>
-            <div className="flex justify-center items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mt-2 flex-wrap">
-              <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {resumeData.personalInfo.address}</span>
-              <a href={`mailto:${resumeData.personalInfo.email}`} className="flex items-center gap-1.5 hover:text-primary transition-colors"><Mail className="h-3 w-3" /> {resumeData.personalInfo.email}</a>
-              <span className="flex items-center gap-1.5"><Phone className="h-3 w-3" /> {resumeData.personalInfo.phone}</span>
-              {resumeData.personalInfo.linkedin && <a href={ensureUrlScheme(resumeData.personalInfo.linkedin)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors"><Linkedin className="h-3 w-3" /> {resumeData.personalInfo.linkedin}</a>}
-              {resumeData.personalInfo.portfolio && <a href={ensureUrlScheme(resumeData.personalInfo.portfolio)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors"><Globe className="h-3 w-3" /> {resumeData.personalInfo.portfolio}</a>}
+            <h1 className="text-2xl md:text-3xl font-bold font-headline tracking-tight">{resumeData.personalInfo.name}</h1>
+            <div className="flex justify-center items-center gap-x-3 md:gap-x-4 gap-y-1 text-xs md:text-sm text-muted-foreground mt-2 flex-wrap">
+              {resumeData.personalInfo.address && <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {resumeData.personalInfo.address}</span>}
+              {resumeData.personalInfo.email && <a href={`mailto:${resumeData.personalInfo.email}`} className="flex items-center gap-1.5 hover:text-primary transition-colors break-all"><Mail className="h-3 w-3" /> {resumeData.personalInfo.email}</a>}
+              {resumeData.personalInfo.phone && <span className="flex items-center gap-1.5"><Phone className="h-3 w-3" /> {resumeData.personalInfo.phone}</span>}
+              {resumeData.personalInfo.linkedin && <a href={ensureUrlScheme(resumeData.personalInfo.linkedin)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors"><Linkedin className="h-3 w-3" /> linkedin.com/in/...</a>}
+              {resumeData.personalInfo.portfolio && <a href={ensureUrlScheme(resumeData.personalInfo.portfolio)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors"><Globe className="h-3 w-3" /> Portfolio</a>}
             </div>
           </header>
 
-          <main className="space-y-6 text-sm">
+          <main className="text-sm">
             {resumeData.summary && (
-              <div>
+              <section className="mb-4 md:mb-6">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">Summary</h2>
-                <p>{resumeData.summary}</p>
-              </div>
+                <p className="text-muted-foreground/90">{resumeData.summary}</p>
+              </section>
             )}
             
             {renderSection("Experience", resumeData.experience, (exp) => (
               <div key={exp.id}>
                 <div className="flex justify-between items-baseline">
                   <h3 className="font-semibold">{exp.jobTitle}</h3>
-                  <span className="text-xs text-muted-foreground">{exp.startDate} - {exp.endDate}</span>
+                  <span className="text-xs text-muted-foreground text-right">{exp.startDate} - {exp.endDate}</span>
                 </div>
                 <div className="flex justify-between items-baseline text-muted-foreground">
                     <p className="italic">{exp.company}</p>
@@ -153,25 +154,25 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
             ))}
             
             {resumeData.skills && resumeData.skills.length > 0 && (
-                <div>
+                <section className="mb-4 md:mb-6">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">Skills</h2>
                 <div className="flex flex-wrap gap-2">
                     {resumeData.skills.map((skill) => (
-                    <span key={skill} className="bg-primary/10 text-primary text-xs font-medium px-2.5 py-1 rounded-full transition-colors hover:bg-primary/20">{skill}</span>
+                    skill && <span key={skill} className="bg-primary/10 text-primary text-xs font-medium px-2.5 py-1 rounded-full transition-colors hover:bg-primary/20">{skill}</span>
                     ))}
                 </div>
-                </div>
+                </section>
             )}
             
             {resumeData.languages && resumeData.languages.length > 0 && (
-                <div>
+                <section className="mb-4 md:mb-6">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">Languages</h2>
                 <div className="flex flex-wrap gap-x-4 gap-y-1">
                     {resumeData.languages.map((lang) => (
-                    <div key={lang.id}><span className="font-semibold">{lang.name}:</span> <span className="text-muted-foreground">{lang.proficiency}</span></div>
+                    lang.name && <div key={lang.id}><span className="font-semibold">{lang.name}:</span> <span className="text-muted-foreground">{lang.proficiency}</span></div>
                     ))}
                 </div>
-                </div>
+                </section>
             )}
 
           </main>

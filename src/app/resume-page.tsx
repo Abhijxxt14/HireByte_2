@@ -81,7 +81,7 @@ export default function ResumePage() {
 
       Projects:
       ${resumeData.projects
-        .map(
+        ?.map(
           (proj) => `
         Project: ${proj.name}
         Description: ${proj.description}
@@ -149,10 +149,10 @@ export default function ResumePage() {
   return (
     <div className="relative isolate min-h-screen w-full bg-background">
       <div className="container mx-auto p-4 md:p-8 relative z-10">
-        <header className="flex justify-between items-center mb-12">
+        <header className="flex justify-between items-center mb-8 md:mb-12">
             <div className="inline-flex items-center gap-3">
-              <FileText className="h-10 w-10 text-primary" />
-              <h1 className="text-3xl sm:text-5xl font-bold font-headline tracking-tight">HireByte</h1>
+              <FileText className="h-8 w-8 md:h-10 md:w-10 text-primary" />
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold font-headline tracking-tight">HireByte</h1>
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
@@ -160,8 +160,8 @@ export default function ResumePage() {
             </div>
         </header>
 
-        <div className="text-center mb-12">
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+        <div className="text-center mb-8 md:mb-12">
+            <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto">
                 Build a professional, ATS-friendly resume with our guided editor. Then, score it against a job description to land your dream job.
             </p>
         </div>
@@ -176,7 +176,7 @@ export default function ResumePage() {
             isLoading={isLoading}
             atsResult={atsResult}
           />
-          <div className="sticky top-8">
+          <div className="lg:sticky lg:top-8">
               <ResumePreview resumeData={resumeData} />
           </div>
         </div>
