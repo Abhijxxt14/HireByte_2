@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Resume } from '@/lib/types';
 import type { AtsScoreResumeOutput } from '@/ai/flows/ats-score-resume';
 import { initialResumeData } from '@/lib/resume-template';
@@ -12,12 +12,34 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { FileText } from 'lucide-react';
 
+const RESUME_STORAGE_KEY = 'firebase-studio-resume-data';
+
 export default function ResumePage() {
-  const [resumeData, setResumeData] = useState<Resume>(initialResumeData);
+  const [resumeData, setResumeData] = useState<Resume>(() => {
+    if (typeof window === 'undefined') {
+      return initialResumeData;
+    }
+    try {
+      const savedResume = window.localStorage.getItem(RESUME_STORAGE_KEY);
+      return savedResume ? JSON.parse(savedResume) : initialResumeData;
+    } catch (error) {
+      console.error("Error loading resume from localStorage", error);
+      return initialResumeData;
+    }
+  });
   const [jobDescription, setJobDescription] = useState('');
   const [atsResult, setAtsResult] = useState<AtsScoreResumeOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(RESUME_STORAGE_KEY, JSON.stringify(resumeData));
+    } catch (error) {
+      console.error("Error saving resume to localStorage", error);
+    }
+  }, [resumeData]);
+
 
   const handleScore = async () => {
     setIsLoading(true);
