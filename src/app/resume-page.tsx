@@ -92,6 +92,43 @@ export default function ResumePage() {
 
       Skills:
       ${resumeData.skills.join(', ')}
+
+      Certifications:
+      ${resumeData.certifications
+        .map(
+          (cert) => `
+        ${cert.name} - ${cert.authority} (${cert.date})
+      `
+        )
+        .join('\n')}
+      
+      Awards:
+      ${resumeData.awards
+        .map(
+          (award) => `
+        ${award.name}
+      `
+        )
+        .join('\n')}
+      
+      Volunteer Experience:
+      ${resumeData.volunteerExperience
+        .map(
+          (vol) => `
+        ${vol.role} at ${vol.organization} (${vol.dates})
+        ${vol.description}
+      `
+        )
+        .join('\n')}
+        
+      Languages:
+      ${resumeData.languages
+        .map(
+          (lang) => `
+        ${lang.name} (${lang.proficiency})
+      `
+        )
+        .join('\n')}
     `;
 
     const result = await getAtsScore(resumeText, jobDescription);

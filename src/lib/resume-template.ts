@@ -71,5 +71,18 @@ export const initialResumeData: Resume = {
       description: "An interactive dashboard for visualizing complex datasets using D3.js and React.",
       link: "https://example.com/dashboard",
     }
+  ],
+  certifications: [
+      { id: "cert1", name: "Certified Kubernetes Application Developer", authority: "The Linux Foundation", date: "Feb 2023" }
+  ],
+  awards: [
+      { id: "award1", name: "Employee of the Quarter - Q4 2022" }
+  ],
+  volunteerExperience: [
+      { id: "vol1", role: "Mentor", organization: "Code for America", dates: "2022 - Present", description: "Mentored aspiring developers in web development fundamentals."}
+  ],
+  languages: [
+      { id: "lang1", name: "English", proficiency: "Native" },
+      { id: "lang2", name: "Spanish", proficiency: "Professional Working Proficiency" }
   ]
 };

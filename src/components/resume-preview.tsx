@@ -22,6 +22,30 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
     return url;
   }
 
+  const renderSection = (title: string, data: any[], renderItem: (item: any, index: number) => React.ReactNode) => {
+    if (!data || data.length === 0) return null;
+    return (
+      <div>
+        <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">{title}</h2>
+        <div className="space-y-4">
+          {data.map(renderItem)}
+        </div>
+      </div>
+    );
+  };
+  
+  const renderSimpleListSection = (title: string, data: any[], renderItem: (item: any, index: number) => React.ReactNode) => {
+     if (!data || data.length === 0) return null;
+      return (
+        <div>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">{title}</h2>
+          <ul className="list-disc list-inside mt-1 text-sm text-muted-foreground/90">
+            {data.map(renderItem)}
+          </ul>
+        </div>
+      );
+  }
+
   return (
     <Card className="shadow-2xl shadow-primary/10 transition-shadow duration-300 hover:shadow-primary/20">
       <CardContent className="p-0">
@@ -37,78 +61,103 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
             </div>
           </header>
 
-          <main className="space-y-6">
-            <div>
-              <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">Summary</h2>
-              <p className="text-sm">{resumeData.summary}</p>
-            </div>
+          <main className="space-y-6 text-sm">
+            {resumeData.summary && (
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">Summary</h2>
+                <p>{resumeData.summary}</p>
+              </div>
+            )}
             
-            <div>
-              <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">Experience</h2>
-              <div className="space-y-4">
-                {resumeData.experience.map((exp) => (
-                  <div key={exp.id} className="text-sm">
-                    <div className="flex justify-between items-baseline">
-                      <h3 className="font-semibold">{exp.jobTitle}</h3>
-                      <span className="text-xs text-muted-foreground">{exp.startDate} - {exp.endDate}</span>
-                    </div>
-                    <div className="flex justify-between items-baseline text-muted-foreground">
-                       <p className="italic">{exp.company}</p>
-                       <p className="italic text-xs">{exp.location}</p>
-                    </div>
-                    <ul className="list-disc list-inside mt-1 text-sm text-muted-foreground/90 whitespace-pre-wrap">
-                      {exp.description.split('\n').map((line, i) => line && <li key={i}>{line.replace(/^- /, '')}</li>)}
-                    </ul>
-                  </div>
-                ))}
+            {renderSection("Experience", resumeData.experience, (exp) => (
+              <div key={exp.id}>
+                <div className="flex justify-between items-baseline">
+                  <h3 className="font-semibold">{exp.jobTitle}</h3>
+                  <span className="text-xs text-muted-foreground">{exp.startDate} - {exp.endDate}</span>
+                </div>
+                <div className="flex justify-between items-baseline text-muted-foreground">
+                    <p className="italic">{exp.company}</p>
+                    <p className="italic text-xs">{exp.location}</p>
+                </div>
+                <ul className="list-disc list-inside mt-1 text-muted-foreground/90 whitespace-pre-wrap">
+                  {exp.description.split('\n').map((line: string, i: number) => line && <li key={i}>{line.replace(/^- /, '')}</li>)}
+                </ul>
               </div>
-            </div>
+            ))}
 
-            <div>
-              <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">Projects</h2>
-              <div className="space-y-4">
-                {resumeData.projects.map((proj) => (
-                  <div key={proj.id} className="text-sm">
-                    <div className="flex justify-between items-baseline">
-                      <h3 className="font-semibold">{proj.name}</h3>
-                      {proj.link && (
-                         <a href={ensureUrlScheme(proj.link)} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 transition-colors">
-                            Live Demo <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
-                    </div>
-                    <p className="mt-1 text-sm text-muted-foreground/90">{proj.description}</p>
-                  </div>
-                ))}
+            {renderSection("Projects", resumeData.projects, (proj) => (
+               <div key={proj.id}>
+                <div className="flex justify-between items-baseline">
+                  <h3 className="font-semibold">{proj.name}</h3>
+                  {proj.link && (
+                      <a href={ensureUrlScheme(proj.link)} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 transition-colors">
+                        Live Demo <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </div>
+                <p className="mt-1 text-muted-foreground/90">{proj.description}</p>
               </div>
-            </div>
+            ))}
 
-            <div>
-              <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">Education</h2>
-              <div className="space-y-2">
-                {resumeData.education.map((edu) => (
-                  <div key={edu.id} className="text-sm">
+            {renderSection("Education", resumeData.education, (edu) => (
+              <div key={edu.id}>
+                <div className="flex justify-between items-baseline">
+                  <h3 className="font-semibold">{edu.school}</h3>
+                  <span className="text-xs text-muted-foreground">{edu.graduationDate}</span>
+                </div>
+                <div className="flex justify-between items-baseline text-muted-foreground">
+                  <p className="italic">{edu.degree}</p>
+                  <p className="italic text-xs">{edu.location}</p>
+                </div>
+              </div>
+            ))}
+            
+            {renderSection("Certifications", resumeData.certifications, (cert) => (
+                <div key={cert.id}>
                     <div className="flex justify-between items-baseline">
-                      <h3 className="font-semibold">{edu.school}</h3>
-                      <span className="text-xs text-muted-foreground">{edu.graduationDate}</span>
+                        <h3 className="font-semibold">{cert.name}</h3>
+                        <span className="text-xs text-muted-foreground">{cert.date}</span>
                     </div>
-                    <div className="flex justify-between items-baseline text-muted-foreground">
-                      <p className="italic">{edu.degree}</p>
-                      <p className="italic text-xs">{edu.location}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                    <p className="italic text-muted-foreground">{cert.authority}</p>
+                </div>
+            ))}
 
-            <div>
-              <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">Skills</h2>
-              <div className="flex flex-wrap gap-2">
-                {resumeData.skills.map((skill) => (
-                  <span key={skill} className="bg-primary/10 text-primary text-xs font-medium px-2.5 py-1 rounded-full transition-colors hover:bg-primary/20">{skill}</span>
-                ))}
-              </div>
-            </div>
+            {renderSimpleListSection("Awards & Achievements", resumeData.awards, (award) => (
+                <li key={award.id}>{award.name}</li>
+            ))}
+
+            {renderSection("Volunteer Experience", resumeData.volunteerExperience, (vol) => (
+                <div key={vol.id}>
+                    <div className="flex justify-between items-baseline">
+                        <h3 className="font-semibold">{vol.role}</h3>
+                        <span className="text-xs text-muted-foreground">{vol.dates}</span>
+                    </div>
+                    <p className="italic text-muted-foreground">{vol.organization}</p>
+                    <p className="mt-1 text-muted-foreground/90">{vol.description}</p>
+                </div>
+            ))}
+            
+            {resumeData.skills && resumeData.skills.length > 0 && (
+                <div>
+                <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">Skills</h2>
+                <div className="flex flex-wrap gap-2">
+                    {resumeData.skills.map((skill) => (
+                    <span key={skill} className="bg-primary/10 text-primary text-xs font-medium px-2.5 py-1 rounded-full transition-colors hover:bg-primary/20">{skill}</span>
+                    ))}
+                </div>
+                </div>
+            )}
+            
+            {resumeData.languages && resumeData.languages.length > 0 && (
+                <div>
+                <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">Languages</h2>
+                <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    {resumeData.languages.map((lang) => (
+                    <div key={lang.id}><span className="font-semibold">{lang.name}:</span> <span className="text-muted-foreground">{lang.proficiency}</span></div>
+                    ))}
+                </div>
+                </div>
+            )}
 
           </main>
         </div>

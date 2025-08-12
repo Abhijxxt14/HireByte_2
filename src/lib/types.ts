@@ -32,6 +32,32 @@ export interface Project {
   link: string;
 }
 
+export interface Certification {
+  id: string;
+  name: string;
+  authority: string;
+  date: string;
+}
+
+export interface Award {
+  id: string;
+  name: string;
+}
+
+export interface VolunteerExperience {
+  id: string;
+  role: string;
+  organization: string;
+  dates: string;
+  description: string;
+}
+
+export interface Language {
+    id: string;
+    name: string;
+    proficiency: string;
+}
+
 export interface Resume {
   personalInfo: PersonalInfo;
   summary: string;
@@ -39,4 +65,8 @@ export interface Resume {
   education: Education[];
   skills: string[];
   projects: Project[];
+  certifications: Certification[];
+  awards: Award[];
+  volunteerExperience: VolunteerExperience[];
+  languages: Language[];
 }

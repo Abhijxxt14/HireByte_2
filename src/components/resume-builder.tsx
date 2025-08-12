@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AtsScoreDisplay } from "@/components/ats-score-display";
-import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff, FolderKanban } from "lucide-react";
+import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff, FolderKanban, Award, Languages, Handshake, Ribbon } from "lucide-react";
 import React, { useState, useEffect, useRef } from 'react';
 
 const SpeechRecognition =
@@ -204,6 +204,90 @@ export function ResumeBuilder({
     setResumeData({ ...resumeData, projects: newProjects });
   };
   
+  const handleCertificationChange = (index: number, field: string, value: string) => {
+    const newCerts = [...resumeData.certifications];
+    newCerts[index] = { ...newCerts[index], [field]: value };
+    setResumeData({ ...resumeData, certifications: newCerts });
+  };
+
+  const addCertification = () => {
+    setResumeData({
+      ...resumeData,
+      certifications: [
+        ...resumeData.certifications,
+        { id: crypto.randomUUID(), name: "", authority: "", date: "" },
+      ],
+    });
+  };
+  
+  const removeCertification = (index: number) => {
+    const newCerts = resumeData.certifications.filter((_, i) => i !== index);
+    setResumeData({ ...resumeData, certifications: newCerts });
+  };
+
+  const handleAwardChange = (index: number, value: string) => {
+    const newAwards = [...resumeData.awards];
+    newAwards[index] = { ...newAwards[index], name: value };
+    setResumeData({ ...resumeData, awards: newAwards });
+  };
+
+  const addAward = () => {
+    setResumeData({
+      ...resumeData,
+      awards: [
+        ...resumeData.awards,
+        { id: crypto.randomUUID(), name: "" },
+      ],
+    });
+  };
+  
+  const removeAward = (index: number) => {
+    const newAwards = resumeData.awards.filter((_, i) => i !== index);
+    setResumeData({ ...resumeData, awards: newAwards });
+  };
+  
+  const handleVolunteerChange = (index: number, field: string, value: string) => {
+    const newVol = [...resumeData.volunteerExperience];
+    newVol[index] = { ...newVol[index], [field]: value };
+    setResumeData({ ...resumeData, volunteerExperience: newVol });
+  };
+  
+  const addVolunteer = () => {
+    setResumeData({
+      ...resumeData,
+      volunteerExperience: [
+        ...resumeData.volunteerExperience,
+        { id: crypto.randomUUID(), role: "", organization: "", dates: "", description: "" },
+      ],
+    });
+  };
+  
+  const removeVolunteer = (index: number) => {
+    const newVol = resumeData.volunteerExperience.filter((_, i) => i !== index);
+    setResumeData({ ...resumeData, volunteerExperience: newVol });
+  };
+  
+  const handleLanguageChange = (index: number, field: string, value: string) => {
+    const newLang = [...resumeData.languages];
+    newLang[index] = { ...newLang[index], [field]: value };
+    setResumeData({ ...resumeData, languages: newLang });
+  };
+  
+  const addLanguage = () => {
+    setResumeData({
+      ...resumeData,
+      languages: [
+        ...resumeData.languages,
+        { id: crypto.randomUUID(), name: "", proficiency: "" },
+      ],
+    });
+  };
+  
+  const removeLanguage = (index: number) => {
+    const newLang = resumeData.languages.filter((_, i) => i !== index);
+    setResumeData({ ...resumeData, languages: newLang });
+  };
+
   return (
     <Card className="shadow-2xl shadow-primary/10 transition-shadow duration-300 hover:shadow-primary/20">
       <CardHeader>
@@ -330,6 +414,73 @@ export function ResumeBuilder({
             </AccordionContent>
           </AccordionItem>
           
+          <AccordionItem value="certifications">
+            <AccordionTrigger className="text-lg font-semibold"><Ribbon className="mr-3 h-5 w-5 text-primary"/>Certifications & Training</AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2">
+              {resumeData.certifications.map((cert, index) => (
+                <div key={cert.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><Label>Certification Name</Label><Input value={cert.name} onChange={(e) => handleCertificationChange(index, "name", e.target.value)} /></div>
+                    <div><Label>Issuing Authority</Label><Input value={cert.authority} onChange={(e) => handleCertificationChange(index, "authority", e.target.value)} /></div>
+                    <div><Label>Date Earned</Label><Input value={cert.date} onChange={(e) => handleCertificationChange(index, "date", e.target.value)} /></div>
+                  </div>
+                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeCertification(index)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addCertification} className="transition-transform hover:scale-105"><PlusCircle className="mr-2"/>Add Certification</Button>
+            </AccordionContent>
+          </AccordionItem>
+          
+          <AccordionItem value="awards">
+            <AccordionTrigger className="text-lg font-semibold"><Award className="mr-3 h-5 w-5 text-primary"/>Awards & Achievements</AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2">
+              {resumeData.awards.map((award, index) => (
+                <div key={award.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
+                  <div><Label>Award/Achievement</Label><Input value={award.name} onChange={(e) => handleAwardChange(index, e.target.value)} /></div>
+                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeAward(index)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addAward} className="transition-transform hover:scale-105"><PlusCircle className="mr-2"/>Add Award</Button>
+            </AccordionContent>
+          </AccordionItem>
+          
+          <AccordionItem value="volunteer">
+            <AccordionTrigger className="text-lg font-semibold"><Handshake className="mr-3 h-5 w-5 text-primary"/>Volunteer Experience</AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2">
+              {resumeData.volunteerExperience.map((vol, index) => (
+                <div key={vol.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><Label>Role</Label><Input value={vol.role} onChange={(e) => handleVolunteerChange(index, "role", e.target.value)} /></div>
+                    <div><Label>Organization</Label><Input value={vol.organization} onChange={(e) => handleVolunteerChange(index, "organization", e.target.value)} /></div>
+                     <div><Label>Dates</Label><Input value={vol.dates} onChange={(e) => handleVolunteerChange(index, "dates", e.target.value)} /></div>
+                  </div>
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea value={vol.description} onChange={(e) => handleVolunteerChange(index, "description", e.target.value)} rows={3} placeholder="Skills demonstrated or impact created..." />
+                  </div>
+                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeVolunteer(index)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addVolunteer} className="transition-transform hover:scale-105"><PlusCircle className="mr-2"/>Add Volunteer Role</Button>
+            </AccordionContent>
+          </AccordionItem>
+          
+          <AccordionItem value="languages">
+            <AccordionTrigger className="text-lg font-semibold"><Languages className="mr-3 h-5 w-5 text-primary"/>Languages</AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2">
+              {resumeData.languages.map((lang, index) => (
+                <div key={lang.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><Label>Language</Label><Input value={lang.name} onChange={(e) => handleLanguageChange(index, "name", e.target.value)} /></div>
+                    <div><Label>Proficiency</Label><Input value={lang.proficiency} onChange={(e) => handleLanguageChange(index, "proficiency", e.target.value)} /></div>
+                  </div>
+                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeLanguage(index)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addLanguage} className="transition-transform hover:scale-105"><PlusCircle className="mr-2"/>Add Language</Button>
+            </AccordionContent>
+          </AccordionItem>
+
           <AccordionItem value="ats-score">
             <AccordionTrigger className="text-lg font-semibold"><BrainCircuit className="mr-3 h-5 w-5 text-primary"/>ATS Score Analysis</AccordionTrigger>
             <AccordionContent className="space-y-4 pt-2">
