@@ -1,4 +1,7 @@
 
+"use client";
+
+import { useState } from 'react';
 import { UserNav } from '@/components/auth/user-nav';
 import { Footer } from '@/components/footer';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -11,6 +14,16 @@ import { FileText, Mail } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ContactPage() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+
+  const recipientEmail = 'jeebankrushnasahu1@gmail.com';
+  const subject = `Message from ${name} (${email}) via HireByte`;
+  const body = `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`;
+
+  const mailtoHref = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <header className="container mx-auto p-4 md:p-8 flex justify-between items-center">
@@ -33,24 +46,44 @@ export default function ContactPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* NOTE: This is a visual form only and does not send data. */}
-            <form className="space-y-4">
+            <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
-                  <Input id="name" placeholder="John Doe" />
+                  <Input 
+                    id="name" 
+                    placeholder="John Doe" 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="john.doe@example.com" />
+                  <Label htmlFor="email">Your Email</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="john.doe@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="message">Message</Label>
-                <Textarea id="message" placeholder="Your message here..." rows={6} />
+                <Textarea 
+                  id="message" 
+                  placeholder="Your message here..." 
+                  rows={6}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                />
               </div>
-              <Button type="submit" className="w-full" disabled>Send Message</Button>
-            </form>
+              <Button asChild className="w-full">
+                <a href={mailtoHref}>
+                  Send Message
+                </a>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </main>
