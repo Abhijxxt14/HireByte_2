@@ -58,8 +58,8 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
               {resumeData.personalInfo.address && <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {resumeData.personalInfo.address}</span>}
               {resumeData.personalInfo.email && <a href={`mailto:${resumeData.personalInfo.email}`} className="flex items-center gap-1.5 hover:text-primary transition-colors break-all"><Mail className="h-3 w-3" /> {resumeData.personalInfo.email}</a>}
               {resumeData.personalInfo.phone && <span className="flex items-center gap-1.5"><Phone className="h-3 w-3" /> {resumeData.personalInfo.phone}</span>}
-              {resumeData.personalInfo.linkedin && <a href={ensureUrlScheme(resumeData.personalInfo.linkedin)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors"><Linkedin className="h-3 w-3" /> linkedin.com/in/...</a>}
-              {resumeData.personalInfo.portfolio && <a href={ensureUrlScheme(resumeData.personalInfo.portfolio)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors"><Globe className="h-3 w-3" /> Portfolio</a>}
+              {resumeData.personalInfo.linkedin && <a href={ensureUrlScheme(resumeData.personalInfo.linkedin)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors no-print"><Linkedin className="h-3 w-3" /> linkedin.com/in/...</a>}
+              {resumeData.personalInfo.portfolio && <a href={ensureUrlScheme(resumeData.personalInfo.portfolio)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary transition-colors no-print"><Globe className="h-3 w-3" /> Portfolio</a>}
             </div>
           </header>
 
@@ -75,7 +75,7 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
               <div key={exp.id}>
                 <div className="flex justify-between items-baseline">
                   <h3 className="font-semibold">{exp.jobTitle}</h3>
-                  <span className="text-xs text-muted-foreground text-right">{exp.startDate} - {exp.endDate}</span>
+                  <span className="text-xs text-muted-foreground text-right no-print">{exp.startDate} - {exp.endDate}</span>
                 </div>
                 <div className="flex justify-between items-baseline text-muted-foreground">
                     <p className="italic">{exp.company}</p>
@@ -92,7 +92,7 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
                 <div className="flex justify-between items-baseline">
                   <h3 className="font-semibold">{proj.name}</h3>
                   {proj.link && (
-                      <a href={ensureUrlScheme(proj.link)} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 transition-colors">
+                      <a href={ensureUrlScheme(proj.link)} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1 transition-colors no-print">
                         Live Demo <ExternalLink className="h-3 w-3" />
                     </a>
                   )}
@@ -105,7 +105,7 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
               <div key={edu.id}>
                 <div className="flex justify-between items-baseline">
                   <h3 className="font-semibold">{edu.school}</h3>
-                  <span className="text-xs text-muted-foreground">{edu.graduationDate}</span>
+                  <span className="text-xs text-muted-foreground no-print">{edu.graduationDate}</span>
                 </div>
                 <div className="flex justify-between items-baseline text-muted-foreground">
                   <p className="italic">{edu.degree}</p>
@@ -120,12 +120,12 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
                         <div className="flex items-center gap-2">
                            <h3 className="font-semibold">{cert.name}</h3>
                             {cert.link && (
-                                <a href={ensureUrlScheme(cert.link)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1 transition-colors">
+                                <a href={ensureUrlScheme(cert.link)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1 transition-colors no-print">
                                     <LinkIcon className="h-3 w-3" />
                                 </a>
                             )}
                         </div>
-                        <span className="text-xs text-muted-foreground">{cert.date}</span>
+                        <span className="text-xs text-muted-foreground no-print">{cert.date}</span>
                     </div>
                     <p className="italic text-muted-foreground">{cert.authority}</p>
                 </div>
@@ -135,7 +135,7 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
                  <li key={award.id} className="flex items-center gap-2">
                     <span>{award.name}</span>
                     {award.link && (
-                        <a href={ensureUrlScheme(award.link)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1 transition-colors">
+                        <a href={ensureUrlScheme(award.link)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1 transition-colors no-print">
                             <LinkIcon className="h-3 w-3" />
                         </a>
                     )}
@@ -146,7 +146,7 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
                 <div key={vol.id}>
                     <div className="flex justify-between items-baseline">
                         <h3 className="font-semibold">{vol.role}</h3>
-                        <span className="text-xs text-muted-foreground">{vol.dates}</span>
+                        <span className="text-xs text-muted-foreground no-print">{vol.dates}</span>
                     </div>
                     <p className="italic text-muted-foreground">{vol.organization}</p>
                     <p className="mt-1 text-muted-foreground/90">{vol.description}</p>
