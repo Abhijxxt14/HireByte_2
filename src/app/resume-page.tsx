@@ -10,6 +10,7 @@ import { ResumePreview } from '@/components/resume-preview';
 import { useToast } from '@/hooks/use-toast';
 import { FileText } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { ThreeBackground } from '@/components/three-background';
 
 const RESUME_STORAGE_KEY = 'firebase-studio-resume-data';
 
@@ -105,31 +106,34 @@ export default function ResumePage() {
   };
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <header className="text-center mb-12 relative">
-        <div className="absolute top-0 right-0">
-          <ThemeToggle />
-        </div>
-        <div className="inline-flex items-center gap-3 mb-4">
-          <FileText className="h-10 w-10 text-primary" />
-          <h1 className="text-5xl font-bold font-headline tracking-tight">ATS Resume Ace</h1>
-        </div>
-        <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-          Build a professional, ATS-friendly resume with our guided editor. Then, score it against a job description to land your dream job.
-        </p>
-      </header>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <ResumeBuilder
-          resumeData={resumeData}
-          setResumeData={setResumeData}
-          jobDescription={jobDescription}
-          setJobDescription={setJobDescription}
-          handleScore={handleScoreFromBuilder}
-          isLoading={isLoading}
-          atsResult={atsResult}
-        />
-        <div className="sticky top-8">
-            <ResumePreview resumeData={resumeData} />
+    <div className="relative isolate min-h-screen w-full">
+      <ThreeBackground />
+      <div className="container mx-auto p-4 md:p-8 relative z-10">
+        <header className="text-center mb-12 relative">
+          <div className="absolute top-0 right-0">
+            <ThemeToggle />
+          </div>
+          <div className="inline-flex items-center gap-3 mb-4">
+            <FileText className="h-10 w-10 text-primary" />
+            <h1 className="text-5xl font-bold font-headline tracking-tight">ATS Resume Ace</h1>
+          </div>
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+            Build a professional, ATS-friendly resume with our guided editor. Then, score it against a job description to land your dream job.
+          </p>
+        </header>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+          <ResumeBuilder
+            resumeData={resumeData}
+            setResumeData={setResumeData}
+            jobDescription={jobDescription}
+            setJobDescription={setJobDescription}
+            handleScore={handleScoreFromBuilder}
+            isLoading={isLoading}
+            atsResult={atsResult}
+          />
+          <div className="sticky top-8">
+              <ResumePreview resumeData={resumeData} />
+          </div>
         </div>
       </div>
     </div>
