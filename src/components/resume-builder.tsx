@@ -74,17 +74,11 @@ export function ResumeBuilder({
                 const content = await page.getTextContent();
                 text += content.items.map((item: any) => item.str).join(' ') + '\n';
             }
-             const result = await getAtsScore(text, jobDescription);
-
-            if ('error' in result) {
-              toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: result.error,
-              });
-            } else {
-                handleScore();
-            }
+            
+            // This is a prop drill from the parent component.
+            // It sets the parent's `atsResult` state, which is then passed back down.
+            // It feels a bit indirect, but it reuses the existing state management.
+            handleScore();
 
         } catch (error) {
             console.error("Error parsing PDF", error);
