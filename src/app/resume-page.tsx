@@ -13,6 +13,7 @@ import { FileText } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { UserNav } from '@/components/auth/user-nav';
 import { Footer } from '@/components/footer';
+import { sanitizeAndTrim } from '@/lib/utils';
 
 const RESUME_STORAGE_KEY = 'firebase-studio-resume-data';
 
@@ -44,10 +45,54 @@ export default function ResumePage() {
     }
   }, [resumeData]);
 
+  const validateResume = (resume: Resume): string | null => {
+    if (
+      !resume.personalInfo.name ||
+      !resume.personalInfo.email ||
+      !resume.personalInfo.phone
+    ) {
+      return 'Please fill out your Name, Email, and Phone in Personal Information.';
+    }
+    if (!resume.summary) {
+      return 'Please provide a Professional Summary.';
+    }
+    if (!resume.experience || resume.experience.length === 0 || !resume.experience[0].jobTitle) {
+      return 'Please add at least one Work Experience entry.';
+    }
+     if (!resume.education || resume.education.length === 0 || !resume.education[0].school) {
+      return 'Please add at least one Education entry.';
+    }
+    if (!resume.skills || resume.skills.length === 0) {
+        return 'Please add at least one skill.';
+    }
+    return null;
+  };
+
 
   const handleScoreFromBuilder = async () => {
     setIsLoading(true);
     setAtsResult(null);
+    
+    const validationError = validateResume(resumeData);
+    if (validationError) {
+      toast({
+        variant: 'destructive',
+        title: 'Incomplete Resume',
+        description: validationError,
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (!jobDescription || jobDescription.trim().length < 50) {
+      toast({
+        variant: 'destructive',
+        title: 'Invalid Job Description',
+        description: 'Please paste a complete job description (at least 50 characters) to get an accurate score.',
+      });
+      setIsLoading(false);
+      return;
+    }
 
     const resumeText = `
       Name: ${resumeData.personalInfo.name}
@@ -131,16 +176,24 @@ export default function ResumePage() {
         .join('\n')}
     `;
 
-    const result = await getAtsScore(resumeText, jobDescription);
+    const sanitizedResume = sanitizeAndTrim(resumeText, 15000);
+    const sanitizedJobDescription = sanitizeAndTrim(jobDescription, 5000);
 
-    if ('error' in result) {
+    const result = await getAtsScore(sanitizedResume, sanitizedJobDescription);
+
+    if (result && 'error' in result) {
+      console.error("ATS Scoring Error:", result.error);
       toast({
         variant: 'destructive',
-        title: 'Error',
+        title: 'Error Scoring Resume',
         description: result.error,
       });
-    } else {
+    } else if (result) {
       setAtsResult(result);
+       toast({
+        title: 'Analysis Complete!',
+        description: 'Your resume has been successfully scored.',
+      });
     }
 
     setIsLoading(false);
