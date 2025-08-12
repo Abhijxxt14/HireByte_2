@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, signInWithRedirect, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,12 +68,7 @@ export function SignUpForm() {
       await updateProfile(userCredential.user, {
         displayName: data.name,
       });
-      toast({
-        title: 'Account Created!',
-        description: 'You have been signed up successfully.',
-      });
-      router.push('/');
-      router.refresh();
+      // Redirect handled by auth context
     } catch (error: any) {
       console.error("SignUp Error:", error);
       toast({
@@ -90,15 +85,10 @@ export function SignUpForm() {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
+    const provider = new GoogleAuthProvider();
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      toast({
-        title: 'Success!',
-        description: 'You have been logged in successfully with Google.',
-      });
-      router.push('/');
-      router.refresh();
+        await signInWithRedirect(auth, provider);
+         // Redirect will happen, user will be brought back to login page to handle result
     } catch (error: any) {
         console.error("Google Sign-In Error:", error);
         let description = 'An unexpected error occurred. Please try again.';
@@ -110,7 +100,6 @@ export function SignUpForm() {
             title: 'Google Sign-In Failed',
             description: description,
         });
-    } finally {
         setIsGoogleLoading(false);
     }
   }
@@ -192,7 +181,7 @@ export function SignUpForm() {
             </div>
           </div>
 
-          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading}>
+          <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading}>
             {isGoogleLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (

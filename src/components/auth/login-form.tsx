@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithRedirect, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -64,12 +64,7 @@ export function LoginForm() {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
-      toast({
-        title: 'Success!',
-        description: 'You have been logged in successfully.',
-      });
-      router.push('/');
-      router.refresh();
+      // Redirect handled by auth context
     } catch (error: any) {
       console.error("Login Error:", error);
       toast({
@@ -88,13 +83,8 @@ export function LoginForm() {
     setIsGoogleLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      toast({
-        title: 'Success!',
-        description: 'You have been logged in successfully with Google.',
-      });
-      router.push('/');
-      router.refresh();
+      await signInWithRedirect(auth, provider);
+      // Redirect will happen, no need for toast here on success
     } catch (error: any) {
         console.error("Google Sign-In Error:", error);
         let description = 'An unexpected error occurred. Please try again.';
@@ -106,7 +96,6 @@ export function LoginForm() {
             title: 'Google Sign-In Failed',
             description: description,
         });
-    } finally {
         setIsGoogleLoading(false);
     }
   }
@@ -173,7 +162,7 @@ export function LoginForm() {
             </div>
           </div>
 
-          <Button variant="outline" className="w-full transition-transform hover:scale-[1.02] active:scale-[0.98]" onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading}>
+          <Button variant="outline" type="button" className="w-full transition-transform hover:scale-[1.02] active:scale-[0.98]" onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading}>
             {isGoogleLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (

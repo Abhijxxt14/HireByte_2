@@ -6,31 +6,53 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { LoginForm } from '@/components/auth/login-form';
 import Link from 'next/link';
-import { FileText } from 'lucide-react';
+import { FileText, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getRedirectResult } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function LoginPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!loading && user) {
       router.replace('/');
     }
   }, [user, loading, router]);
+  
+  useEffect(() => {
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          // This is the successfully signed in user.
+          toast({
+            title: 'Success!',
+            description: 'You have been logged in successfully with Google.',
+          });
+          router.replace('/');
+        }
+      })
+      .catch((error) => {
+        // Handle Errors here.
+        console.error("Google Redirect Result Error:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Google Sign-In Failed',
+            description: error.message || 'An unexpected error occurred during Google sign-in.',
+        });
+      });
+  }, [router, toast]);
+
 
   if (loading || user) {
      return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4">
-             <div className="flex items-center space-x-4 p-4">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-[250px]" />
-                    <Skeleton className="h-4 w-[200px]" />
-                </div>
-            </div>
-            <p className="text-muted-foreground mt-4">Redirecting...</p>
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="text-muted-foreground mt-4">Loading session...</p>
         </div>
     );
   }
