@@ -83,15 +83,15 @@ export function SignUpForm() {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
+    const provider = new GoogleAuthProvider();
     try {
-      const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       // Redirect handled by auth context
     } catch (error: any) {
         console.error("Google Sign-In Error:", error);
         let description = 'An unexpected error occurred. Please try again.';
         if (error.code === 'auth/unauthorized-domain') {
-            description = "This app's domain is not authorized for Google Sign-In. The most likely cause is a misconfiguration in the Google Cloud OAuth Consent Screen. Please go to https://console.cloud.google.com/apis/credentials/consent?project=ats-resume-ace-tzfj1 to configure it.";
+            description = "This app's domain is not authorized for Google Sign-In. Please ensure 'localhost' and 'localhost:9002' are added to the 'Authorized JavaScript origins' in your Google Cloud Platform credentials for the OAuth Client ID.";
         }
         toast({
             variant: 'destructive',
