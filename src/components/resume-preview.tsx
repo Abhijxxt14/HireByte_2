@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import type { Resume } from "@/lib/types";
-import { Download, Mail, Phone, Linkedin, Globe, MapPin } from "lucide-react";
+import { Download, Mail, Phone, Linkedin, Globe, MapPin, ExternalLink } from "lucide-react";
 
 interface ResumePreviewProps {
   resumeData: Resume;
@@ -15,6 +15,14 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
     window.print();
   };
 
+  const ensureUrlScheme = (url: string) => {
+    if (!url) return "";
+    if (!/^https?:\/\//i.test(url)) {
+      return `https://${url}`;
+    }
+    return url;
+  }
+
   return (
     <Card className="shadow-lg">
       <CardContent className="p-0">
@@ -23,10 +31,10 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
             <h1 className="text-3xl font-bold font-headline tracking-tight">{resumeData.personalInfo.name}</h1>
             <div className="flex justify-center items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mt-2 flex-wrap">
               <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {resumeData.personalInfo.address}</span>
-              <span className="flex items-center gap-1.5"><Mail className="h-3 w-3" /> {resumeData.personalInfo.email}</span>
+              <a href={`mailto:${resumeData.personalInfo.email}`} className="flex items-center gap-1.5 hover:text-primary"><Mail className="h-3 w-3" /> {resumeData.personalInfo.email}</a>
               <span className="flex items-center gap-1.5"><Phone className="h-3 w-3" /> {resumeData.personalInfo.phone}</span>
-              {resumeData.personalInfo.linkedin && <span className="flex items-center gap-1.5"><Linkedin className="h-3 w-3" /> {resumeData.personalInfo.linkedin}</span>}
-              {resumeData.personalInfo.portfolio && <span className="flex items-center gap-1.5"><Globe className="h-3 w-3" /> {resumeData.personalInfo.portfolio}</span>}
+              {resumeData.personalInfo.linkedin && <a href={ensureUrlScheme(resumeData.personalInfo.linkedin)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary"><Linkedin className="h-3 w-3" /> {resumeData.personalInfo.linkedin}</a>}
+              {resumeData.personalInfo.portfolio && <a href={ensureUrlScheme(resumeData.personalInfo.portfolio)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-primary"><Globe className="h-3 w-3" /> {resumeData.personalInfo.portfolio}</a>}
             </div>
           </header>
 
@@ -52,6 +60,25 @@ export function ResumePreview({ resumeData }: ResumePreviewProps) {
                     <ul className="list-disc list-inside mt-1 text-sm text-muted-foreground/90 whitespace-pre-wrap">
                       {exp.description.split('\n').map((line, i) => line && <li key={i}>{line.replace(/^- /, '')}</li>)}
                     </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-sm font-bold uppercase tracking-widest text-primary mb-2 border-b-2 border-primary pb-1">Projects</h2>
+              <div className="space-y-4">
+                {resumeData.projects.map((proj) => (
+                  <div key={proj.id} className="text-sm">
+                    <div className="flex justify-between items-baseline">
+                      <h3 className="font-semibold">{proj.name}</h3>
+                      {proj.link && (
+                         <a href={ensureUrlScheme(proj.link)} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
+                            Live Demo <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground/90">{proj.description}</p>
                   </div>
                 ))}
               </div>

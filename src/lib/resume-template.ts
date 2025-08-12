@@ -58,4 +58,18 @@ export const initialResumeData: Resume = {
     "Git",
     "Agile Methodologies",
   ],
+  projects: [
+    {
+      id: "proj1",
+      name: "E-commerce Platform",
+      description: "A full-featured e-commerce platform with a custom CMS and payment integration.",
+      link: "https://example.com/ecommerce",
+    },
+    {
+      id: "proj2",
+      name: "Data Visualization Dashboard",
+      description: "An interactive dashboard for visualizing complex datasets using D3.js and React.",
+      link: "https://example.com/dashboard",
+    }
+  ]
 };

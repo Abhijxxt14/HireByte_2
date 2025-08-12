@@ -25,10 +25,18 @@ export interface Education {
   graduationDate: string;
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  link: string;
+}
+
 export interface Resume {
   personalInfo: PersonalInfo;
   summary: string;
   experience: Experience[];
   education: Education[];
   skills: string[];
+  projects: Project[];
 }

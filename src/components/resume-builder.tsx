@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AtsScoreDisplay } from "@/components/ats-score-display";
-import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff } from "lucide-react";
+import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff, FolderKanban } from "lucide-react";
 import React, { useState, useEffect, useRef } from 'react';
 
 // SpeechRecognition API might not be available on all browsers
@@ -72,6 +72,12 @@ export function ResumeBuilder({
             if (index !== -1) {
               const currentDesc = resumeData.experience[index].description;
               handleExperienceChange(index, "description", currentDesc + finalTranscript);
+            }
+            break;
+          case 'project':
+            if (index !== -1) {
+              const currentDesc = resumeData.projects[index].description;
+              handleProjectChange(index, "description", currentDesc + finalTranscript);
             }
             break;
           case 'skills':
@@ -179,6 +185,27 @@ export function ResumeBuilder({
     setResumeData({ ...resumeData, skills: value.split(",").map((s) => s.trim()) });
   };
   
+  const handleProjectChange = (index: number, field: string, value: string) => {
+    const newProjects = [...resumeData.projects];
+    newProjects[index] = { ...newProjects[index], [field]: value };
+    setResumeData({ ...resumeData, projects: newProjects });
+  };
+
+  const addProject = () => {
+    setResumeData({
+      ...resumeData,
+      projects: [
+        ...resumeData.projects,
+        { id: crypto.randomUUID(), name: "", description: "", link: "" },
+      ],
+    });
+  };
+
+  const removeProject = (index: number) => {
+    const newProjects = resumeData.projects.filter((_, i) => i !== index);
+    setResumeData({ ...resumeData, projects: newProjects });
+  };
+  
   return (
     <Card className="shadow-lg">
       <CardHeader>
@@ -267,6 +294,29 @@ export function ResumeBuilder({
             </AccordionContent>
           </AccordionItem>
 
+          <AccordionItem value="projects">
+            <AccordionTrigger className="font-semibold"><FolderKanban className="mr-2"/>Projects</AccordionTrigger>
+            <AccordionContent className="space-y-4 p-1">
+              {resumeData.projects.map((proj, index) => (
+                <div key={proj.id} className="p-4 border rounded-lg space-y-4 relative">
+                  <div><Label>Project Name</Label><Input value={proj.name} onChange={(e) => handleProjectChange(index, "name", e.target.value)} /></div>
+                  <div className="relative">
+                    <Label>Description</Label>
+                    <Textarea value={proj.description} onChange={(e) => handleProjectChange(index, "description", e.target.value)} rows={3} placeholder="Describe your project..." className="pr-10" />
+                    {SpeechRecognition && (
+                        <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground" onClick={() => toggleListening(`project-${index}`)}>
+                            {isListening === `project-${index}` ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
+                        </Button>
+                    )}
+                  </div>
+                  <div><Label>Demo Link</Label><Input value={proj.link} onChange={(e) => handleProjectChange(index, "link", e.target.value)} /></div>
+                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground hover:text-destructive" onClick={() => removeProject(index)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addProject}><PlusCircle className="mr-2"/>Add Project</Button>
+            </AccordionContent>
+          </AccordionItem>
+
           <AccordionItem value="skills">
             <AccordionTrigger className="font-semibold"><Wrench className="mr-2"/>Skills</AccordionTrigger>
             <AccordionContent className="p-1">
@@ -307,5 +357,3 @@ export function ResumeBuilder({
     </Card>
   );
 }
-
-    

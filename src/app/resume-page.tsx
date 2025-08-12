@@ -53,6 +53,17 @@ export default function ResumePage() {
         )
         .join('\n')}
 
+      Projects:
+      ${resumeData.projects
+        .map(
+          (proj) => `
+        Project: ${proj.name}
+        Description: ${proj.description}
+        Link: ${proj.link}
+      `
+        )
+        .join('\n')}
+
       Skills:
       ${resumeData.skills.join(', ')}
     `;
