@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Resume } from "@/lib/types";
@@ -9,7 +10,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AtsScoreDisplay } from "@/components/ats-score-display";
-import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench } from "lucide-react";
+import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff } from "lucide-react";
+import React, { useState, useEffect, useRef } from 'react';
+
+// SpeechRecognition API might not be available on all browsers
+const SpeechRecognition =
+  (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition));
 
 interface ResumeBuilderProps {
   resumeData: Resume;
@@ -30,6 +36,87 @@ export function ResumeBuilder({
   isLoading,
   atsResult,
 }: ResumeBuilderProps) {
+  const [isListening, setIsListening] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!SpeechRecognition) {
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event: any) => {
+      let interimTranscript = '';
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+
+      if (finalTranscript && isListening) {
+        const [field, indexStr] = isListening.split('-');
+        const index = indexStr ? parseInt(indexStr) : -1;
+
+        switch (field) {
+          case 'summary':
+            handleSummaryChange(resumeData.summary + finalTranscript);
+            break;
+          case 'experience':
+            if (index !== -1) {
+              const currentDesc = resumeData.experience[index].description;
+              handleExperienceChange(index, "description", currentDesc + finalTranscript);
+            }
+            break;
+          case 'skills':
+             const currentSkills = resumeData.skills.join(", ");
+             handleSkillsChange(currentSkills ? `${currentSkills}, ${finalTranscript}`: finalTranscript);
+            break;
+          case 'jobDescription':
+            setJobDescription(jobDescription + finalTranscript);
+            break;
+        }
+      }
+    };
+
+    recognition.onend = () => {
+        if (isListening) {
+            recognition.start(); // Keep listening if it was not manually stopped
+        }
+    };
+
+    recognitionRef.current = recognition;
+
+    return () => {
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+        }
+    }
+  }, [isListening, resumeData, jobDescription]);
+
+  const toggleListening = (field: string) => {
+    if (isListening === field) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(null);
+    } else {
+        if (isListening && recognitionRef.current) {
+            recognitionRef.current.stop();
+        }
+        setIsListening(field);
+        if (recognitionRef.current) {
+            recognitionRef.current.start();
+        }
+    }
+  };
+
   const handlePersonalInfoChange = (field: string, value: string) => {
     setResumeData({ ...resumeData, personalInfo: { ...resumeData.personalInfo, [field]: value } });
   };
@@ -122,8 +209,15 @@ export function ResumeBuilder({
           <AccordionItem value="summary">
             <AccordionTrigger className="font-semibold"><Briefcase className="mr-2"/>Professional Summary</AccordionTrigger>
             <AccordionContent className="space-y-2 p-1">
-                <Label htmlFor="summary">Summary</Label>
-                <Textarea id="summary" value={resumeData.summary} onChange={(e) => handleSummaryChange(e.target.value)} placeholder="Write a brief professional summary..." rows={4} />
+                <div className="relative">
+                    <Label htmlFor="summary">Summary</Label>
+                    <Textarea id="summary" value={resumeData.summary} onChange={(e) => handleSummaryChange(e.target.value)} placeholder="Write a brief professional summary..." rows={4} className="pr-10"/>
+                    {SpeechRecognition && (
+                        <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground" onClick={() => toggleListening('summary')}>
+                            {isListening === 'summary' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
+                        </Button>
+                    )}
+                </div>
             </AccordionContent>
           </AccordionItem>
 
@@ -139,7 +233,15 @@ export function ResumeBuilder({
                     <div><Label>Start Date</Label><Input value={exp.startDate} onChange={(e) => handleExperienceChange(index, "startDate", e.target.value)} /></div>
                     <div><Label>End Date</Label><Input value={exp.endDate} onChange={(e) => handleExperienceChange(index, "endDate", e.target.value)} /></div>
                   </div>
-                  <div><Label>Description</Label><Textarea value={exp.description} onChange={(e) => handleExperienceChange(index, "description", e.target.value)} rows={3} placeholder="- Key achievement 1..." /></div>
+                  <div className="relative">
+                    <Label>Description</Label>
+                    <Textarea value={exp.description} onChange={(e) => handleExperienceChange(index, "description", e.target.value)} rows={3} placeholder="- Key achievement 1..." className="pr-10"/>
+                    {SpeechRecognition && (
+                         <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground" onClick={() => toggleListening(`experience-${index}`)}>
+                            {isListening === `experience-${index}` ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
+                        </Button>
+                    )}
+                  </div>
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground hover:text-destructive" onClick={() => removeExperience(index)}><Trash2 className="h-4 w-4" /></Button>
                 </div>
               ))}
@@ -168,17 +270,29 @@ export function ResumeBuilder({
           <AccordionItem value="skills">
             <AccordionTrigger className="font-semibold"><Wrench className="mr-2"/>Skills</AccordionTrigger>
             <AccordionContent className="p-1">
-              <Label htmlFor="skills">Skills (comma-separated)</Label>
-              <Textarea id="skills" value={resumeData.skills.join(", ")} onChange={(e) => handleSkillsChange(e.target.value)} />
+                <div className="relative">
+                    <Label htmlFor="skills">Skills (comma-separated)</Label>
+                    <Textarea id="skills" value={resumeData.skills.join(", ")} onChange={(e) => handleSkillsChange(e.target.value)} className="pr-10"/>
+                    {SpeechRecognition && (
+                        <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground" onClick={() => toggleListening('skills')}>
+                            {isListening === 'skills' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
+                        </Button>
+                    )}
+                </div>
             </AccordionContent>
           </AccordionItem>
           
           <AccordionItem value="ats-score">
             <AccordionTrigger className="font-semibold"><BrainCircuit className="mr-2"/>ATS Score</AccordionTrigger>
             <AccordionContent className="space-y-4 p-1">
-              <div>
+              <div className="relative">
                 <Label htmlFor="job-description">Job Description</Label>
-                <Textarea id="job-description" value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} placeholder="Paste the job description here..." rows={6} />
+                <Textarea id="job-description" value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} placeholder="Paste the job description here..." rows={6} className="pr-10"/>
+                 {SpeechRecognition && (
+                    <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground" onClick={() => toggleListening('jobDescription')}>
+                        {isListening === 'jobDescription' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
+                    </Button>
+                )}
               </div>
               <Button onClick={handleScore} disabled={isLoading} className="w-full bg-[hsl(var(--accent))] text-accent-foreground hover:bg-[hsl(var(--accent)/0.9)]">
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -193,3 +307,5 @@ export function ResumeBuilder({
     </Card>
   );
 }
+
+    
