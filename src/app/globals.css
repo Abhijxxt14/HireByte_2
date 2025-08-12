@@ -148,6 +148,8 @@ body {
   }
   .animate-typewriter {
     animation: typewriter 2s steps(40, end);
+    animation-delay: 1.5s;
+    animation-fill-mode: forwards;
   }
 
   @keyframes blink-caret {
@@ -156,6 +158,8 @@ body {
   }
   .animate-blink-caret {
     animation: blink-caret 0.75s step-end infinite;
+    animation-delay: 1.5s;
+    animation-fill-mode: forwards;
   }
   
   @keyframes scanline {
@@ -186,7 +190,7 @@ body {
     background: hsl(var(--accent) / 0.5);
     box-shadow: 0 0 5px hsl(var(--accent)), 0 0 10px hsl(var(--accent));
     animation: scanline 2.5s cubic-bezier(0.2, 0.6, 0.7, 1) forwards;
-    animation-delay: 2s;
+    animation-delay: 3.5s;
     opacity: 0;
   }
 }

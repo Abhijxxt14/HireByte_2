@@ -21,11 +21,11 @@ export default function Home() {
     if (splashSeen) {
       setShowSplash(false);
     } else {
-      // Show splash for 3.5 seconds then fade out
+      // Show splash for 5 seconds then fade out
       const timer = setTimeout(() => {
         setShowSplash(false);
         sessionStorage.setItem(SPLASH_SEEN_KEY, 'true');
-      }, 3500);
+      }, 5000);
       return () => clearTimeout(timer);
     }
   }, []);
