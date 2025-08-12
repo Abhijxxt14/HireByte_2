@@ -11,7 +11,7 @@ import { ResumePreview } from '@/components/resume-preview';
 import { useToast } from '@/hooks/use-toast';
 import { FileText } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { ThreeBackground } from '@/components/three-background';
+import ThreeBackground from '@/components/three-background';
 
 const RESUME_STORAGE_KEY = 'firebase-studio-resume-data';
 
@@ -32,12 +32,7 @@ export default function ResumePage() {
   const [atsResult, setAtsResult] = useState<AtsScoreResumeOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const [isClient, setIsClient] = useState(false);
  
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   useEffect(() => {
     if (typeof window !== 'undefined') {
         try {
@@ -115,7 +110,7 @@ export default function ResumePage() {
 
   return (
     <div className="relative isolate min-h-screen w-full">
-      {isClient && <ThreeBackground />}
+      <ThreeBackground />
       <div className="container mx-auto p-4 md:p-8 relative z-10">
         <header className="text-center mb-12 relative">
           <div className="absolute top-0 right-0">
