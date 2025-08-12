@@ -49,9 +49,13 @@ export async function getAtsScore(
 
   try {
     const result = scoreResumeWithKeywords(resumeTextSections, sanitizedJobDescription);
+    if ('error' in result) {
+        console.error("Keyword Scoring Error in action:", result.error);
+        return { error: "Could not process the resume or job description text. Please check the content and try again." };
+    }
     return result;
   } catch (e: any) {
-    console.error("Keyword Scoring Error in action:", e);
-    return { error: "An unexpected error occurred while scoring the resume. Please try again later." };
+    console.error("Critical Error in getAtsScore action:", e);
+    return { error: "An unexpected server error occurred while scoring the resume. Please try again later." };
   }
 }
