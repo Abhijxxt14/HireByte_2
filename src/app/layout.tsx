@@ -5,8 +5,8 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {
-  title: 'ATS Resume Ace',
-  description: 'Build and score your resume for Applicant Tracking Systems.',
+  title: 'HireByte',
+  description: 'Build and score your resume with HireByte.',
 };
 
 export default function RootLayout({

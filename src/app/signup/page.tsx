@@ -39,7 +39,7 @@ export default function SignUpPage() {
        <div className="absolute top-8 left-8">
         <Link href="/" className="inline-flex items-center gap-2 text-primary hover:underline">
           <FileText className="h-6 w-6" />
-          <span className="text-xl font-bold font-headline">ATS Resume Ace</span>
+          <span className="text-xl font-bold font-headline">HireByte</span>
         </Link>
       </div>
       <SignUpForm />
