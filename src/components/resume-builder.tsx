@@ -378,7 +378,7 @@ export function ResumeBuilder({
           </AccordionItem>
 
           <AccordionItem value="projects">
-            <AccordionTrigger className="text-lg font-semibold"><FolderKanban className="mr-3 h-5 w-5 text-primary"/>Projects</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-semibold"><FolderKanban className="mr-3 h-5 w-5 text-primary"/>Projects (optional)</AccordionTrigger>
             <AccordionContent className="space-y-4 pt-2">
               {resumeData.projects?.map((proj, index) => (
                 <div key={proj.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
@@ -416,7 +416,7 @@ export function ResumeBuilder({
           </AccordionItem>
           
           <AccordionItem value="certifications">
-            <AccordionTrigger className="text-lg font-semibold"><Ribbon className="mr-3 h-5 w-5 text-primary"/>Certifications & Training</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-semibold"><Ribbon className="mr-3 h-5 w-5 text-primary"/>Certifications & Training (optional)</AccordionTrigger>
             <AccordionContent className="space-y-4 pt-2">
               {resumeData.certifications?.map((cert, index) => (
                 <div key={cert.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
@@ -433,7 +433,7 @@ export function ResumeBuilder({
           </AccordionItem>
           
           <AccordionItem value="awards">
-            <AccordionTrigger className="text-lg font-semibold"><Award className="mr-3 h-5 w-5 text-primary"/>Awards & Achievements</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-semibold"><Award className="mr-3 h-5 w-5 text-primary"/>Awards & Achievements (optional)</AccordionTrigger>
             <AccordionContent className="space-y-4 pt-2">
               {resumeData.awards?.map((award, index) => (
                 <div key={award.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
@@ -446,7 +446,7 @@ export function ResumeBuilder({
           </AccordionItem>
           
           <AccordionItem value="volunteer">
-            <AccordionTrigger className="text-lg font-semibold"><Handshake className="mr-3 h-5 w-5 text-primary"/>Volunteer Experience</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-semibold"><Handshake className="mr-3 h-5 w-5 text-primary"/>Volunteer Experience (optional)</AccordionTrigger>
             <AccordionContent className="space-y-4 pt-2">
               {resumeData.volunteerExperience?.map((vol, index) => (
                 <div key={vol.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
@@ -467,7 +467,7 @@ export function ResumeBuilder({
           </AccordionItem>
           
           <AccordionItem value="languages">
-            <AccordionTrigger className="text-lg font-semibold"><Languages className="mr-3 h-5 w-5 text-primary"/>Languages</AccordionTrigger>
+            <AccordionTrigger className="text-lg font-semibold"><Languages className="mr-3 h-5 w-5 text-primary"/>Languages (optional)</AccordionTrigger>
             <AccordionContent className="space-y-4 pt-2">
               {resumeData.languages?.map((lang, index) => (
                 <div key={lang.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
