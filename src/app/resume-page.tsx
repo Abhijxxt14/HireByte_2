@@ -9,6 +9,7 @@ import { ResumeBuilder } from '@/components/resume-builder';
 import { ResumePreview } from '@/components/resume-preview';
 import { useToast } from '@/hooks/use-toast';
 import { FileText } from 'lucide-react';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const RESUME_STORAGE_KEY = 'firebase-studio-resume-data';
 
@@ -105,7 +106,10 @@ export default function ResumePage() {
 
   return (
     <div className="container mx-auto p-4 md:p-8">
-      <header className="text-center mb-12">
+      <header className="text-center mb-12 relative">
+        <div className="absolute top-0 right-0">
+          <ThemeToggle />
+        </div>
         <div className="inline-flex items-center gap-3 mb-4">
           <FileText className="h-10 w-10 text-primary" />
           <h1 className="text-5xl font-bold font-headline tracking-tight">ATS Resume Ace</h1>
