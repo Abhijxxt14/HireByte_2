@@ -16,6 +16,9 @@ import * as pdfjs from 'pdfjs-dist';
 import { getAtsScore } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 
+if (typeof window !== 'undefined') {
+    pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
+}
 
 // SpeechRecognition API might not be available on all browsers
 const SpeechRecognition =
@@ -45,12 +48,6 @@ export function ResumeBuilder({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-        pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
-    }
-  }, []);
 
   const handlePdfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -435,3 +432,5 @@ export function ResumeBuilder({
     </Card>
   );
 }
+
+    
