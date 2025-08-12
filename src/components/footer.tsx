@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Linkedin } from 'lucide-react';
+import { Linkedin, Github } from 'lucide-react';
 import Link from 'next/link';
 
 export function Footer() {
@@ -18,6 +18,15 @@ export function Footer() {
             aria-label="Jeeban Krushna Sahu's LinkedIn Profile"
           >
             <Linkedin className="h-4 w-4 text-primary" />
+          </Link>
+           <Link 
+            href="https://github.com/Jeeban-2006" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="ml-2 p-1 rounded-full hover:bg-accent transition-colors"
+            aria-label="Jeeban Krushna Sahu's GitHub Profile"
+          >
+            <Github className="h-4 w-4 text-primary" />
           </Link>
         </div>
         <div className="hidden sm:block">|</div>
