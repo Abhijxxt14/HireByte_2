@@ -10,8 +10,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AtsScoreDisplay } from "@/components/ats-score-display";
-import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff, FolderKanban } from "lucide-react";
+import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff, FolderKanban, Upload } from "lucide-react";
 import React, { useState, useEffect, useRef } from 'react';
+import * as pdfjs from 'pdfjs-dist';
+import { getAtsScore } from "@/lib/actions";
+import { useToast } from "@/hooks/use-toast";
+
 
 // SpeechRecognition API might not be available on all browsers
 const SpeechRecognition =
@@ -38,6 +42,67 @@ export function ResumeBuilder({
 }: ResumeBuilderProps) {
   const [isListening, setIsListening] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+  const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+        pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+    }
+  }, []);
+
+  const handlePdfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    if (file.type !== 'application/pdf') {
+        toast({
+            variant: 'destructive',
+            title: 'Invalid File Type',
+            description: 'Please upload a PDF file.',
+        });
+        return;
+    }
+
+    setIsUploading(true);
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const typedArray = new Uint8Array(e.target?.result as ArrayBuffer);
+        try {
+            const pdf = await pdfjs.getDocument(typedArray).promise;
+            let text = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                text += content.items.map((item: any) => item.str).join(' ') + '\n';
+            }
+             const result = await getAtsScore(text, jobDescription);
+
+            if ('error' in result) {
+              toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: result.error,
+              });
+            } else {
+                handleScore();
+            }
+
+        } catch (error) {
+            console.error("Error parsing PDF", error);
+            toast({
+                variant: 'destructive',
+                title: 'PDF Parsing Error',
+                description: 'Could not read text from the PDF. Please try another file.',
+            });
+        } finally {
+            setIsUploading(false);
+        }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
 
   useEffect(() => {
     if (!SpeechRecognition) {
@@ -213,7 +278,7 @@ export function ResumeBuilder({
           <Bot className="h-8 w-8 text-primary" />
           <div>
             <CardTitle className="font-headline">Resume Builder</CardTitle>
-            <CardDescription>Fill out the sections below to create your resume.</CardDescription>
+            <CardDescription>Fill out the sections below or upload a PDF to create your resume.</CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -344,11 +409,24 @@ export function ResumeBuilder({
                     </Button>
                 )}
               </div>
-              <Button onClick={handleScore} disabled={isLoading} className="w-full bg-[hsl(var(--accent))] text-accent-foreground hover:bg-[hsl(var(--accent)/0.9)]">
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {isLoading ? "Analyzing..." : "Analyze and Score"}
-              </Button>
-              {isLoading && <p className="text-center text-sm text-muted-foreground">AI is analyzing your resume. This may take a moment...</p>}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button onClick={handleScore} disabled={isLoading || isUploading} className="w-full bg-[hsl(var(--accent))] text-accent-foreground hover:bg-[hsl(var(--accent)/0.9)]">
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    {isLoading ? "Analyzing..." : "Analyze and Score Built Resume"}
+                </Button>
+                <Button 
+                    variant="outline" 
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isLoading || isUploading}
+                    className="w-full"
+                >
+                    {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload />}
+                    {isUploading ? "Parsing..." : "Upload Resume PDF"}
+                </Button>
+                <input type="file" ref={fileInputRef} onChange={handlePdfUpload} accept="application/pdf" className="hidden" />
+              </div>
+
+              {(isLoading || isUploading) && <p className="text-center text-sm text-muted-foreground">AI is analyzing your resume. This may take a moment...</p>}
               {atsResult && <AtsScoreDisplay result={atsResult} />}
             </AccordionContent>
           </AccordionItem>
