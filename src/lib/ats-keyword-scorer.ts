@@ -9,13 +9,21 @@ export interface KeywordAtsResult {
 }
 
 const tokenizer = new WordTokenizer();
+// Create a Set for efficient stopword checking.
+const stopwordsSet = new Set(Stopwords);
 
 // Helper to process text: tokenize, lowercase, remove stopwords, and stem
 const processTextToStems = (text: string): string[] => {
-    if (!text) return [];
-    const tokens = tokenizer.tokenize(text.toLowerCase()) || [];
-    const filteredTokens = tokens.filter(token => !Stopwords.includes(token) && /^[a-z]+$/.test(token));
-    return filteredTokens.map(token => PorterStemmer.stem(token));
+    if (!text || typeof text !== 'string') return [];
+    try {
+        const tokens = tokenizer.tokenize(text.toLowerCase()) || [];
+        // Use the Set's .has() method for stable and performant checking.
+        const filteredTokens = tokens.filter(token => !stopwordsSet.has(token) && /^[a-z]+$/.test(token));
+        return filteredTokens.map(token => PorterStemmer.stem(token));
+    } catch (error) {
+        console.error('Error during text processing to stems:', error);
+        return [];
+    }
 };
 
 // Main scoring function
@@ -25,12 +33,16 @@ export function scoreResumeWithKeywords(
 ): KeywordAtsResult | { error: string } {
 
     try {
+        if (!jobDescription || typeof jobDescription !== 'string' || jobDescription.trim().length === 0) {
+            return { error: "Job description is empty or invalid." };
+        }
+
         const jdTokens = tokenizer.tokenize(jobDescription.toLowerCase()) || [];
         
         const originalKeywordsMap: { [key: string]: string } = {};
         const jdStems = new Set<string>();
 
-        const filteredJdTokens = jdTokens.filter(token => !Stopwords.includes(token) && /^[a-z]+$/.test(token));
+        const filteredJdTokens = jdTokens.filter(token => !stopwordsSet.has(token) && /^[a-z]+$/.test(token));
 
         filteredJdTokens.forEach(token => {
             const stem = PorterStemmer.stem(token);
