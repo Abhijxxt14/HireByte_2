@@ -37,16 +37,16 @@ export function ResumeBuilder({
   atsResult,
 }: ResumeBuilderProps) {
   const [isListening, setIsListening] = useState<string | null>(null);
-  const [pendingStartField, setPendingStartField] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const activeFieldRef = useRef<string | null>(null);
-  const originalTextRef = useRef<string>("");
+  const fieldCacheRef = useRef<Record<string, string>>({});
+
 
   useEffect(() => {
     activeFieldRef.current = isListening;
   }, [isListening]);
   
-  const updateField = (field: string | null, newText: string) => {
+  const updateField = (field: string | null, newText: string, isFinal: boolean) => {
     if (!field) return;
 
     const [fieldName, indexStr] = field.split('-');
@@ -77,7 +77,26 @@ export function ResumeBuilder({
         setJobDescription(newText);
         break;
     }
+
+    if (isFinal) {
+      delete fieldCacheRef.current[field];
+    }
   };
+  
+  const getFieldValue = (field: string): string => {
+      const [fieldName, indexStr] = field.split('-');
+      const index = indexStr ? parseInt(indexStr, 10) : -1;
+      
+      switch (fieldName) {
+          case 'summary': return resumeData.summary;
+          case 'experience': return index !== -1 ? resumeData.experience[index].description : "";
+          case 'project': return index !== -1 && resumeData.projects ? resumeData.projects[index].description : "";
+          case 'skills': return (resumeData.skills || []).join(", ");
+          case 'jobDescription': return jobDescription;
+          default: return "";
+      }
+  }
+
 
   useEffect(() => {
     if (!SpeechRecognition) {
@@ -94,44 +113,27 @@ export function ResumeBuilder({
       const activeField = activeFieldRef.current;
       if (!activeField) return;
 
+      const originalText = fieldCacheRef.current[activeField] ?? '';
       let interimTranscript = '';
       let finalTranscript = '';
 
-      for (let i = 0; i < event.results.length; i++) {
-        const transcriptPart = event.results[i][0].transcript;
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
         if (event.results[i].isFinal) {
-          finalTranscript += transcriptPart;
+          finalTranscript += event.results[i][0].transcript;
         } else {
-          interimTranscript += transcriptPart;
+          interimTranscript += event.results[i][0].transcript;
         }
       }
       
-      const newText = originalTextRef.current + (finalTranscript || interimTranscript);
-      updateField(activeField, newText);
+      const newText = originalText + finalTranscript + interimTranscript;
+      updateField(activeField, newText, !!finalTranscript);
+      if (finalTranscript) {
+          fieldCacheRef.current[activeField] = originalText + finalTranscript;
+      }
     };
     
     recognition.onend = () => {
-      const activeField = activeFieldRef.current;
-       if (activeField) {
-        const finalText = getFieldValue(activeField);
-        originalTextRef.current = finalText;
-      }
       setIsListening(null);
-
-      if (pendingStartField && recognitionRef.current) {
-        const fieldToStart = pendingStartField;
-        setPendingStartField(null);
-        
-        const currentText = getFieldValue(fieldToStart);
-        originalTextRef.current = currentText ? currentText.trim() + " " : "";
-
-        setIsListening(fieldToStart);
-        try {
-          recognitionRef.current.start();
-        } catch (e) {
-          console.error("Error starting speech recognition:", e);
-        }
-      }
     };
     
     recognition.onerror = (event: any) => {
@@ -145,47 +147,28 @@ export function ResumeBuilder({
     };
 
     recognitionRef.current = recognition;
+    
+    return () => {
+        recognitionRef.current?.abort();
+    }
   }, []);
 
-  const getFieldValue = (field: string): string => {
-      const [fieldName, indexStr] = field.split('-');
-      const index = indexStr ? parseInt(indexStr, 10) : -1;
-      
-      switch (fieldName) {
-          case 'summary': return resumeData.summary;
-          case 'experience': return index !== -1 ? resumeData.experience[index].description : "";
-          case 'project': return index !== -1 && resumeData.projects ? resumeData.projects[index].description : "";
-          case 'skills': return (resumeData.skills || []).join(", ");
-          case 'jobDescription': return jobDescription;
-          default: return "";
-      }
-  }
 
   const toggleListening = (field: string) => {
-    if (isListening === field) {
-      recognitionRef.current?.stop();
-    } else if (isListening) {
-      setPendingStartField(field);
-      recognitionRef.current?.stop();
-    } else {
-      let currentText;
+    if (isListening) {
+        recognitionRef.current?.stop();
+        return;
+    }
 
-      // Directly use the prop for jobDescription to avoid stale state issues.
-      if (field === 'jobDescription') {
-        currentText = jobDescription;
-      } else {
-        currentText = getFieldValue(field);
-      }
-      
-      originalTextRef.current = currentText ? currentText.trim() + " " : "";
-      
-      setIsListening(field);
-      try {
+    const currentText = getFieldValue(field);
+    fieldCacheRef.current[field] = currentText ? currentText.trim() + " " : "";
+
+    setIsListening(field);
+    try {
         recognitionRef.current?.start();
-      } catch (e) {
-        // Handle cases where recognition is already started, which can happen with fast clicks.
+    } catch (e) {
         console.error("Error starting speech recognition:", e);
-      }
+        setIsListening(null);
     }
   };
 
@@ -589,3 +572,5 @@ export function ResumeBuilder({
     </Card>
   );
 }
+
+    
