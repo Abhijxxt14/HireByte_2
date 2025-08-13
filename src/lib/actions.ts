@@ -10,9 +10,9 @@ export async function getAtsScore(
   jobDescription: string
 ): Promise<KeywordAtsResult | { error: string }> {
   // Basic validation
-  if (!jobDescription || jobDescription.trim().length < 50) {
+  if (!jobDescription || jobDescription.trim().length < 3) {
     return {
-      error: 'Please provide a complete job description (at least 50 characters).',
+      error: 'Please provide at least a few words for the job description.',
     };
   }
   if (!resume.skills || resume.skills.length === 0) {
