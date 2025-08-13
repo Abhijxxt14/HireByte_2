@@ -10,19 +10,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { FileText, Mail, ArrowLeft } from 'lucide-react';
+import { MessageSquareHeart, ArrowLeft, FileText } from 'lucide-react';
 import Link from 'next/link';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function ContactPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
 
   const handleSendMessage = () => {
     const recipientEmail = 'jeebankrushnasahu1@gmail.com';
-    const subject = `Message from ${name} (${email}) via HireByte`;
-    const body = `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`;
-    const mailtoHref = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const emailSubject = `Feedback from ${name} (${email}) via HireByte: ${subject}`;
+    const body = `Name: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`;
+    const mailtoHref = `mailto:${recipientEmail}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(body)}`;
     window.location.href = mailtoHref;
   };
 
@@ -41,10 +49,10 @@ export default function ContactPage() {
       <main className="flex-grow container mx-auto p-4 md:p-8 flex items-center justify-center">
         <Card className="w-full max-w-2xl shadow-2xl shadow-primary/10">
           <CardHeader className="text-center">
-            <Mail className="mx-auto h-12 w-12 text-primary" />
-            <CardTitle className="text-3xl font-bold font-headline mt-4">Get in Touch</CardTitle>
+            <MessageSquareHeart className="mx-auto h-12 w-12 text-primary" />
+            <CardTitle className="text-3xl font-bold font-headline mt-4">Share Your Feedback</CardTitle>
             <CardDescription>
-              Have a question or feedback? Fill out the form below to send us a message.
+              We'd love to hear about your experience with HireByte. Fill out the form below to send us your thoughts.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -71,6 +79,20 @@ export default function ContactPage() {
                 </div>
               </div>
               <div className="space-y-2">
+                <Label htmlFor="subject">Subject</Label>
+                 <Select onValueChange={setSubject} value={subject}>
+                    <SelectTrigger id="subject">
+                        <SelectValue placeholder="Select a subject..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="General Feedback">General Feedback</SelectItem>
+                        <SelectItem value="Bug Report">Bug Report</SelectItem>
+                        <SelectItem value="Feature Request">Feature Request</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="message">Message</Label>
                 <Textarea 
                   id="message" 
@@ -80,8 +102,8 @@ export default function ContactPage() {
                   onChange={(e) => setMessage(e.target.value)}
                 />
               </div>
-              <Button onClick={handleSendMessage} className="w-full">
-                  Send Message
+              <Button onClick={handleSendMessage} className="w-full" disabled={!name || !email || !subject || !message}>
+                  Send Feedback
               </Button>
                <Button variant="outline" className="w-full" asChild>
                 <Link href="/">

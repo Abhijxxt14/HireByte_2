@@ -31,7 +31,7 @@ export function Footer() {
         </div>
         <div className="hidden sm:block">|</div>
         <Link href="/contact" className="hover:text-primary hover:underline">
-          Contact
+          Feedback
         </Link>
       </div>
     </footer>
