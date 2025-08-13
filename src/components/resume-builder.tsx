@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AtsScoreDisplay } from "@/components/ats-score-display";
-import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff, FolderKanban, Award, Languages, Handshake, Ribbon } from "lucide-react";
+import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, FolderKanban, Award, Languages, Handshake, Ribbon } from "lucide-react";
 import React, { useState, useEffect, useRef } from 'react';
 import type { AtsScoreResumeOutput } from "@/ai/flows/ats-score-resume";
 import { cn } from "@/lib/utils";
@@ -37,6 +37,7 @@ export function ResumeBuilder({
   atsResult,
 }: ResumeBuilderProps) {
   const [isListening, setIsListening] = useState<string | null>(null);
+  const [pendingStartField, setPendingStartField] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const activeFieldRef = useRef<string | null>(null);
   const originalTextRef = useRef<string>("");
@@ -120,9 +121,17 @@ export function ResumeBuilder({
         const currentText = getFieldValue(activeField);
         originalTextRef.current = currentText;
       }
-       if (isListening) {
-         setIsListening(null);
-       }
+      setIsListening(null);
+
+      // If a new field is pending, start listening on it now.
+      if (pendingStartField && recognitionRef.current) {
+        const fieldToStart = pendingStartField;
+        setPendingStartField(null);
+        const currentText = getFieldValue(fieldToStart);
+        originalTextRef.current = currentText ? currentText + " " : "";
+        setIsListening(fieldToStart);
+        recognitionRef.current.start();
+      }
     };
     
     recognition.onerror = (event: any) => {
@@ -155,16 +164,17 @@ export function ResumeBuilder({
 
   const toggleListening = (field: string) => {
     if (isListening === field) {
+      // If listening to the current field, stop it.
+      setPendingStartField(null);
       recognitionRef.current?.stop();
-      setIsListening(null);
+    } else if (isListening) {
+      // If listening to another field, queue the new field and stop the current one.
+      setPendingStartField(field);
+      recognitionRef.current?.stop();
     } else {
-      if (isListening && recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-      
+      // If not listening at all, start immediately.
       const currentText = getFieldValue(field);
       originalTextRef.current = currentText ? currentText + " " : "";
-
       setIsListening(field);
       recognitionRef.current?.start();
     }
