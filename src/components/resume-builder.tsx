@@ -106,36 +106,31 @@ export function ResumeBuilder({
         }
       }
       
-      const newText = originalTextRef.current + (finalTranscript.trim() ? finalTranscript : interimTranscript);
+      const newText = originalTextRef.current + (finalTranscript || interimTranscript);
       updateField(activeField, newText);
-      
-       if (finalTranscript.trim()) {
-        originalTextRef.current = newText + " ";
-      }
     };
     
     recognition.onend = () => {
       const activeField = activeFieldRef.current;
-      if (activeField) {
-         // Finalize text on end
-        const currentText = getFieldValue(activeField);
-        originalTextRef.current = currentText;
+       if (activeField) {
+        const finalText = getFieldValue(activeField);
+        originalTextRef.current = finalText; // Save the final state
       }
       setIsListening(null);
 
-      // If a new field is pending, start listening on it now.
       if (pendingStartField && recognitionRef.current) {
         const fieldToStart = pendingStartField;
-        setPendingStartField(null);
+        setPendingStartField(null); // Clear pending field
+        
         const currentText = getFieldValue(fieldToStart);
         originalTextRef.current = currentText ? currentText + " " : "";
+
         setIsListening(fieldToStart);
         recognitionRef.current.start();
       }
     };
     
     recognition.onerror = (event: any) => {
-      // "aborted" is a normal event when user stops recognition, so we ignore it.
       if (event.error === 'aborted') {
         return;
       }
@@ -146,7 +141,7 @@ export function ResumeBuilder({
     };
 
     recognitionRef.current = recognition;
-  }, []); // Should only run once to initialize
+  }, []);
 
   const getFieldValue = (field: string): string => {
       const [fieldName, indexStr] = field.split('-');
@@ -164,17 +159,14 @@ export function ResumeBuilder({
 
   const toggleListening = (field: string) => {
     if (isListening === field) {
-      // If listening to the current field, stop it.
-      setPendingStartField(null);
       recognitionRef.current?.stop();
     } else if (isListening) {
-      // If listening to another field, queue the new field and stop the current one.
       setPendingStartField(field);
       recognitionRef.current?.stop();
     } else {
-      // If not listening at all, start immediately.
       const currentText = getFieldValue(field);
       originalTextRef.current = currentText ? currentText + " " : "";
+      
       setIsListening(field);
       recognitionRef.current?.start();
     }
