@@ -193,6 +193,20 @@ body {
     animation-delay: 3.5s;
     opacity: 0;
   }
+   @keyframes pulse-mic {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0.75;
+    }
+  }
+
+  .animate-pulse-mic {
+    animation: pulse-mic 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
 }
 
 

@@ -12,6 +12,7 @@ import { AtsScoreDisplay } from "@/components/ats-score-display";
 import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff, FolderKanban, Award, Languages, Handshake, Ribbon } from "lucide-react";
 import React, { useState, useEffect, useRef } from 'react';
 import type { AtsScoreResumeOutput } from "@/ai/flows/ats-score-resume";
+import { cn } from "@/lib/utils";
 
 const SpeechRecognition =
   (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition));
@@ -37,89 +38,84 @@ export function ResumeBuilder({
 }: ResumeBuilderProps) {
   const [isListening, setIsListening] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
-
+  const activeFieldRef = useRef<string | null>(null);
 
   useEffect(() => {
+    activeFieldRef.current = isListening;
+  }, [isListening]);
+  
+  useEffect(() => {
     if (!SpeechRecognition) {
+      console.warn("Speech Recognition API is not supported in this browser.");
       return;
     }
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
+    recognition.continuous = false; // Listen for a single utterance
+    recognition.interimResults = false; // Only get final results
     recognition.lang = 'en-US';
 
     recognition.onresult = (event: any) => {
-      let interimTranscript = '';
-      let finalTranscript = '';
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
-        } else {
-          interimTranscript += event.results[i][0].transcript;
-        }
-      }
+      const transcript = event.results[0][0].transcript;
+      const activeField = activeFieldRef.current;
+      
+      if (transcript && activeField) {
+        const [field, indexStr] = activeField.split('-');
+        const index = indexStr ? parseInt(indexStr, 10) : -1;
 
-      if (finalTranscript && isListening) {
-        const [field, indexStr] = isListening.split('-');
-        const index = indexStr ? parseInt(indexStr) : -1;
+        const updater = (prev: string) => (prev ? prev + " " + transcript : transcript);
 
         switch (field) {
           case 'summary':
-            handleSummaryChange(resumeData.summary + finalTranscript);
+            setResumeData({ ...resumeData, summary: updater(resumeData.summary) });
             break;
           case 'experience':
             if (index !== -1) {
-              const currentDesc = resumeData.experience[index].description;
-              handleExperienceChange(index, "description", currentDesc + finalTranscript);
+              const newExperience = [...resumeData.experience];
+              newExperience[index].description = updater(newExperience[index].description);
+              setResumeData({ ...resumeData, experience: newExperience });
             }
             break;
           case 'project':
-            if (index !== -1 && resumeData.projects) {
-              const currentDesc = resumeData.projects[index].description;
-              handleProjectChange(index, "description", currentDesc + finalTranscript);
+             if (index !== -1 && resumeData.projects) {
+              const newProjects = [...resumeData.projects];
+              newProjects[index].description = updater(newProjects[index].description);
+              setResumeData({ ...resumeData, projects: newProjects });
             }
             break;
           case 'skills':
-             const currentSkills = (resumeData.skills || []).join(", ");
-             handleSkillsChange(currentSkills ? `${currentSkills}, ${finalTranscript}`: finalTranscript);
+            const currentSkills = (resumeData.skills || []).join(", ");
+            setResumeData({ ...resumeData, skills: updater(currentSkills).split(",").map(s => s.trim()) });
             break;
           case 'jobDescription':
-            setJobDescription(jobDescription + finalTranscript);
+            setJobDescription(prev => updater(prev));
             break;
         }
       }
     };
-
+    
     recognition.onend = () => {
-        if (isListening) {
-            recognition.start();
-        }
+      setIsListening(null);
+    };
+    
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error", event.error);
+      setIsListening(null);
     };
 
     recognitionRef.current = recognition;
-
-    return () => {
-        if (recognitionRef.current) {
-            recognitionRef.current.stop();
-        }
-    }
-  }, [isListening, resumeData, jobDescription]);
+  }, [resumeData, setResumeData, setJobDescription]);
 
   const toggleListening = (field: string) => {
     if (isListening === field) {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
+      recognitionRef.current?.stop();
       setIsListening(null);
     } else {
-        if (isListening && recognitionRef.current) {
-            recognitionRef.current.stop();
-        }
-        setIsListening(field);
-        if (recognitionRef.current) {
-            recognitionRef.current.start();
-        }
+      if (isListening && recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(field);
+      recognitionRef.current?.start();
     }
   };
 
@@ -326,7 +322,7 @@ export function ResumeBuilder({
                     <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
                         {SpeechRecognition && (
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('summary')}>
-                                {isListening === 'summary' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
+                                {isListening === 'summary' ? <MicOff className={cn("h-4 w-4 text-primary", isListening === 'summary' && "animate-pulse-mic")} /> : <Mic className="h-4 w-4" />}
                             </Button>
                         )}
                     </div>
@@ -352,7 +348,7 @@ export function ResumeBuilder({
                      <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
                         {SpeechRecognition && (
                              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening(`experience-${index}`)}>
-                                {isListening === `experience-${index}` ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
+                                {isListening === `experience-${index}` ? <MicOff className={cn("h-4 w-4 text-primary", isListening === `experience-${index}` && "animate-pulse-mic")} /> : <Mic className="h-4 w-4" />}
                             </Button>
                         )}
                     </div>
@@ -394,7 +390,7 @@ export function ResumeBuilder({
                     <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
                         {SpeechRecognition && (
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening(`project-${index}`)}>
-                                {isListening === `project-${index}` ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
+                                {isListening === `project-${index}` ? <MicOff className={cn("h-4 w-4 text-primary", isListening === `project-${index}` && "animate-pulse-mic")} /> : <Mic className="h-4 w-4" />}
                             </Button>
                         )}
                     </div>
@@ -416,7 +412,7 @@ export function ResumeBuilder({
                      <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
                         {SpeechRecognition && (
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('skills')}>
-                                {isListening === 'skills' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
+                                {isListening === 'skills' ? <MicOff className={cn("h-4 w-4 text-primary", isListening === 'skills' && "animate-pulse-mic")} /> : <Mic className="h-4 w-4" />}
                             </Button>
                         )}
                     </div>
@@ -503,7 +499,7 @@ export function ResumeBuilder({
                 <Textarea id="job-description" value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} placeholder="Paste the job description here..." rows={6} className="pr-10"/>
                  {SpeechRecognition && (
                     <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('jobDescription')}>
-                        {isListening === 'jobDescription' ? <MicOff className="h-4 w-4 text-primary" /> : <Mic className="h-4 w-4" />}
+                        {isListening === 'jobDescription' ? <MicOff className={cn("h-4 w-4 text-primary", isListening === 'jobDescription' && "animate-pulse-mic")} /> : <Mic className="h-4 w-4" />}
                     </Button>
                 )}
               </div>
