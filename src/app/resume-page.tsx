@@ -85,11 +85,11 @@ export default function ResumePage() {
       return;
     }
 
-    if (!jobDescription || jobDescription.trim().length < 50) {
+    if (!jobDescription || jobDescription.trim().length < 3) {
       toast({
         variant: 'destructive',
         title: 'Invalid Job Description',
-        description: 'Please paste a complete job description (at least 50 characters) to get an accurate score.',
+        description: 'Please provide at least a few words for the job description.',
       });
       setIsLoading(false);
       return;
