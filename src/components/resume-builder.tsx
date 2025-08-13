@@ -104,19 +104,32 @@ export function ResumeBuilder({
           interimTranscript += transcriptPart;
         }
       }
-
-      const newText = originalTextRef.current + (finalTranscript || interimTranscript);
+      
+      const newText = originalTextRef.current + (finalTranscript.trim() ? finalTranscript : interimTranscript);
       updateField(activeField, newText);
-    };
-    
-    recognition.onend = () => {
-      // Clean up in case it ends unexpectedly
-      if (isListening) {
-        setIsListening(null);
+      
+       if (finalTranscript.trim()) {
+        originalTextRef.current = newText + " ";
       }
     };
     
+    recognition.onend = () => {
+      const activeField = activeFieldRef.current;
+      if (activeField) {
+         // Finalize text on end
+        const currentText = getFieldValue(activeField);
+        originalTextRef.current = currentText;
+      }
+       if (isListening) {
+         setIsListening(null);
+       }
+    };
+    
     recognition.onerror = (event: any) => {
+      // "aborted" is a normal event when user stops recognition, so we ignore it.
+      if (event.error === 'aborted') {
+        return;
+      }
       console.error("Speech recognition error", event.error);
       if (isListening) {
         setIsListening(null);
@@ -124,7 +137,7 @@ export function ResumeBuilder({
     };
 
     recognitionRef.current = recognition;
-  }, [resumeData, setResumeData, setJobDescription, isListening]); // isListening added to re-evaluate when it changes
+  }, []); // Should only run once to initialize
 
   const getFieldValue = (field: string): string => {
       const [fieldName, indexStr] = field.split('-');
