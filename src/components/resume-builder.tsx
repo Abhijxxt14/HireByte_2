@@ -114,19 +114,23 @@ export function ResumeBuilder({
       const activeField = activeFieldRef.current;
        if (activeField) {
         const finalText = getFieldValue(activeField);
-        originalTextRef.current = finalText; // Save the final state
+        originalTextRef.current = finalText;
       }
       setIsListening(null);
 
       if (pendingStartField && recognitionRef.current) {
         const fieldToStart = pendingStartField;
-        setPendingStartField(null); // Clear pending field
+        setPendingStartField(null);
         
         const currentText = getFieldValue(fieldToStart);
-        originalTextRef.current = currentText ? currentText + " " : "";
+        originalTextRef.current = currentText ? currentText.trim() + " " : "";
 
         setIsListening(fieldToStart);
-        recognitionRef.current.start();
+        try {
+          recognitionRef.current.start();
+        } catch (e) {
+          console.error("Error starting speech recognition:", e);
+        }
       }
     };
     
@@ -164,7 +168,15 @@ export function ResumeBuilder({
       setPendingStartField(field);
       recognitionRef.current?.stop();
     } else {
-      const currentText = getFieldValue(field);
+      let currentText;
+
+      // Directly use the prop for jobDescription to avoid stale state issues.
+      if (field === 'jobDescription') {
+        currentText = jobDescription;
+      } else {
+        currentText = getFieldValue(field);
+      }
+      
       originalTextRef.current = currentText ? currentText.trim() + " " : "";
       
       setIsListening(field);
