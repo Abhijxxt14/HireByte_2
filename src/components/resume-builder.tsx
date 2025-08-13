@@ -165,10 +165,15 @@ export function ResumeBuilder({
       recognitionRef.current?.stop();
     } else {
       const currentText = getFieldValue(field);
-      originalTextRef.current = currentText ? currentText + " " : "";
+      originalTextRef.current = currentText ? currentText.trim() + " " : "";
       
       setIsListening(field);
-      recognitionRef.current?.start();
+      try {
+        recognitionRef.current?.start();
+      } catch (e) {
+        // Handle cases where recognition is already started, which can happen with fast clicks.
+        console.error("Error starting speech recognition:", e);
+      }
     }
   };
 
