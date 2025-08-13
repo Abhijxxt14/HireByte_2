@@ -2,60 +2,45 @@
 "use server";
 
 import type { Resume } from "@/lib/types";
-import { scoreResumeWithKeywords, type KeywordAtsResult } from "./ats-keyword-scorer";
 import { sanitizeAndTrim } from "./utils";
+import { atsScoreResume, type AtsScoreResumeOutput } from "@/ai/flows/ats-score-resume";
+import { extractTextFromResume } from "./resume-text-extractor";
 
 export async function getAtsScore(
   resume: Resume,
   jobDescription: string
-): Promise<KeywordAtsResult | { error: string }> {
+): Promise<AtsScoreResumeOutput | { error: string }> {
   // Basic validation
   if (!jobDescription || jobDescription.trim().length < 3) {
     return {
       error: 'Please provide at least a few words for the job description.',
     };
   }
-  if (!resume.skills || resume.skills.length === 0) {
-    return { error: 'Please add skills to your resume.' };
-  }
-  if (!resume.experience || resume.experience.length === 0) {
-    return { error: 'Please add work experience to your resume.' };
-  }
-  if (!resume.summary) {
-    return { error: 'Please add a professional summary to your resume.' }
-  }
-
-
-  // Construct searchable resume text blocks
-  const skillsText = resume.skills ? resume.skills.join(' ') : '';
-  const experienceText = resume.experience
-    .map(e => `${e.jobTitle || ''} ${e.description || ''}`)
-    .join(' ');
   
-  const otherText = [
-    resume.summary || '',
-    resume.personalInfo.name || '',
-    ...(resume.education?.map(e => `${e.degree || ''} ${e.school || ''}`) || []),
-    ...(resume.projects?.map(p => `${p.name || ''} ${p.description || ''}`) || []),
-  ].filter(Boolean).join(' ');
+  const resumeText = extractTextFromResume(resume);
 
-  const resumeTextSections = {
-    skills: sanitizeAndTrim(skillsText, 10000),
-    experience: sanitizeAndTrim(experienceText, 20000),
-    other: sanitizeAndTrim(otherText, 10000),
-  };
+  if (!resumeText || resumeText.trim().length < 50) {
+      return { error: 'Your resume seems to be missing key information. Please fill out the summary, experience, and skills sections.' };
+  }
+
+  const sanitizedJobDescription = sanitizeAndTrim(jobDescription, 15000);
+  const sanitizedResumeText = sanitizeAndTrim(resumeText, 20000);
   
-  const sanitizedJobDescription = sanitizeAndTrim(jobDescription, 20000);
-
   try {
-    const result = scoreResumeWithKeywords(resumeTextSections, sanitizedJobDescription);
-    if ('error' in result) {
-        console.error("Keyword Scoring Error in action:", result.error);
-        return { error: "Could not process the resume or job description text. Please check the content and try again." };
-    }
+    const result = await atsScoreResume({
+      resumeText: sanitizedResumeText,
+      jobDescription: sanitizedJobDescription,
+    });
     return result;
   } catch (e: any) {
     console.error("Critical Error in getAtsScore action:", e);
-    return { error: "An unexpected server error occurred while scoring the resume. Please try again later." };
+    // Check for specific Genkit/AI-related error messages
+    if (e.message && (e.message.includes('API key') || e.message.includes('permission denied'))) {
+        return { error: "Could not connect to the AI service. Please check the API key." };
+    }
+    if (e.message && e.message.includes('503')) {
+        return { error: "The AI service is currently unavailable. Please try again later."};
+    }
+    return { error: "An unexpected error occurred while analyzing the resume. The AI model may be temporarily unavailable." };
   }
 }

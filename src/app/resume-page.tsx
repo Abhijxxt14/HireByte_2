@@ -11,8 +11,7 @@ import { FileText } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { UserNav } from '@/components/auth/user-nav';
 import { Footer } from '@/components/footer';
-import { sanitizeAndTrim } from '@/lib/utils';
-import type { KeywordAtsResult } from '@/lib/ats-keyword-scorer';
+import type { AtsScoreResumeOutput } from '@/ai/flows/ats-score-resume';
 import { initialResumeData } from '@/lib/resume-template';
 
 
@@ -32,7 +31,7 @@ export default function ResumePage() {
     }
   });
   const [jobDescription, setJobDescription] = useState('');
-  const [atsResult, setAtsResult] = useState<KeywordAtsResult | null>(null);
+  const [atsResult, setAtsResult] = useState<AtsScoreResumeOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
  
@@ -108,7 +107,7 @@ export default function ResumePage() {
       setAtsResult(result);
        toast({
         title: 'Analysis Complete!',
-        description: 'Your resume has been successfully scored.',
+        description: 'Your resume has been successfully scored by our AI coach.',
       });
     }
 

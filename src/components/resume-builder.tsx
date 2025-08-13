@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AtsScoreDisplay } from "@/components/ats-score-display";
 import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, MicOff, FolderKanban, Award, Languages, Handshake, Ribbon } from "lucide-react";
 import React, { useState, useEffect, useRef } from 'react';
-import type { KeywordAtsResult } from "@/lib/ats-keyword-scorer";
+import type { AtsScoreResumeOutput } from "@/ai/flows/ats-score-resume";
 
 const SpeechRecognition =
   (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition));
@@ -23,7 +23,7 @@ interface ResumeBuilderProps {
   setJobDescription: (desc: string) => void;
   handleScore: () => void;
   isLoading: boolean;
-  atsResult: KeywordAtsResult | null;
+  atsResult: AtsScoreResumeOutput | null;
 }
 
 export function ResumeBuilder({
