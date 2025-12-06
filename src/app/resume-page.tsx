@@ -9,7 +9,6 @@ import { ResumePreview } from '@/components/resume-preview';
 import { useToast } from '@/hooks/use-toast';
 import { FileText } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { UserNav } from '@/components/auth/user-nav';
 import { Footer } from '@/components/footer';
 import type { AtsScoreResumeOutput } from '@/ai/flows/ats-score-resume';
 import { initialResumeData } from '@/lib/resume-template';
@@ -124,7 +123,6 @@ export default function ResumePage() {
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <UserNav />
             </div>
         </header>
 

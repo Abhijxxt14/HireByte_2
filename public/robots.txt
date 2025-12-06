@@ -1,0 +1,28 @@
+# Robots.txt for HireByte
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://hirebyte.netlify.app/sitemap.xml
+
+# Crawl-delay for bots
+Crawl-delay: 1
+
+# Block access to admin or private areas (if any)
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+
+# Allow specific important pages
+Allow: /
+Allow: /contact
+
+# Block specific file types that shouldn't be indexed
+Disallow: *.json$
+Disallow: *.xml$ 
+Disallow: *.txt$
+
+# Allow crawling of important assets
+Allow: /favicon.ico
+Allow: /sitemap.xml
+Allow: /robots.txt
