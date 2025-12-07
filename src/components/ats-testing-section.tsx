@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { validateResumeText } from "@/lib/file-utils";
-import { extractTextFromPDF } from "@/lib/pdf-extractor";
 import { AtsScoreDisplay } from "@/components/ats-score-display";
 
 interface ATSTestingSectionProps {
@@ -75,6 +74,8 @@ export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps)
             title: "Processing PDF",
             description: "Extracting text from your PDF file..."
           });
+          // Dynamic import to avoid SSR issues
+          const { extractTextFromPDF } = await import('@/lib/pdf-extractor');
           extractedText = await extractTextFromPDF(selectedFile);
         } 
         // Handle other file types
