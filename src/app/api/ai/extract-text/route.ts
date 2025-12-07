@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as pdfParse from 'pdf-parse/lib/pdf-parse.js';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,9 +22,11 @@ export async function POST(request: NextRequest) {
     if (fileType === 'text/plain') {
       text = buffer.toString('utf-8');
     }
-    // Handle PDF files with pdf-parse
+    // Handle PDF files with pdf-parse (dynamic require for CommonJS compatibility)
     else if (fileType === 'application/pdf') {
       try {
+        // Use dynamic import/require for CommonJS module
+        const pdfParse = (await import('pdf-parse')).default;
         const pdfData = await pdfParse(buffer);
         text = pdfData.text;
         
