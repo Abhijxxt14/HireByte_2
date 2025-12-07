@@ -8,11 +8,15 @@ export async function extractTextFromPDF(file: File): Promise<string> {
     // Dynamic import to avoid SSR issues
     const pdfjsLib = await import('pdfjs-dist');
     
-    // Configure the worker
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+    // Configure the worker with the correct CDN path
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
     
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const loadingTask = pdfjsLib.getDocument({ 
+      data: arrayBuffer,
+      standardFontDataUrl: `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/standard_fonts/`
+    });
+    const pdf = await loadingTask.promise;
     
     let fullText = '';
     
@@ -26,9 +30,23 @@ export async function extractTextFromPDF(file: File): Promise<string> {
       fullText += pageText + '\n';
     }
     
+    if (!fullText || fullText.trim().length < 20) {
+      throw new Error('No readable text found in PDF');
+    }
+    
     return fullText.trim();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error extracting PDF text:', error);
-    throw new Error('Failed to extract text from PDF. Please ensure the file is a valid PDF.');
+    const errorMessage = error?.message || 'Unknown error';
+    
+    if (errorMessage.includes('worker')) {
+      throw new Error('PDF processing failed. Please try pasting your resume text instead.');
+    } else if (errorMessage.includes('Invalid PDF')) {
+      throw new Error('Invalid PDF file. Please ensure the file is not corrupted.');
+    } else if (errorMessage.includes('No readable text')) {
+      throw new Error('Could not extract text from PDF. It may be image-based. Please paste your text instead.');
+    }
+    
+    throw new Error('Failed to process PDF. Please use the "Paste Text" option instead.');
   }
 }

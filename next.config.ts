@@ -16,6 +16,13 @@ const nextConfig: NextConfig = {
   // Configuration for Netlify deployment
   serverExternalPackages: ['@genkit-ai/googleai', 'genkit'],
   
+  // Webpack configuration for pdfjs-dist
+  webpack: (config) => {
+    config.resolve.alias.canvas = false;
+    config.resolve.alias.encoding = false;
+    return config;
+  },
+  
   // Image optimization for better SEO and performance
   images: {
     formats: ['image/webp', 'image/avif'],
