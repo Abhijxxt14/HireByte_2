@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Groq from 'groq-sdk';
+import * as pdfjsLib from 'pdfjs-dist';
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY || '',
-});
+// Configure PDF.js worker for Node.js environment
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,41 +26,30 @@ export async function POST(request: NextRequest) {
     if (fileType === 'text/plain') {
       text = buffer.toString('utf-8');
     }
-    // Handle PDF files using Groq AI to extract text
+    // Handle PDF files using PDF.js
     else if (fileType === 'application/pdf') {
       try {
-        // Convert PDF to base64 for Groq
-        const base64Pdf = buffer.toString('base64');
+        // Load PDF document
+        const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(buffer) });
+        const pdf = await loadingTask.promise;
         
-        // Use Groq to extract text from PDF
-        const completion = await groq.chat.completions.create({
-          model: "llama-3.2-90b-vision-preview",
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: "Extract all the text content from this resume/CV document. Return only the extracted text, no additional commentary or formatting. Include all sections like experience, education, skills, etc."
-                },
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: `data:application/pdf;base64,${base64Pdf}`
-                  }
-                }
-              ]
-            }
-          ],
-          temperature: 0.1,
-          max_tokens: 4000,
-        });
-
-        text = completion.choices[0]?.message?.content || '';
+        const textParts: string[] = [];
+        
+        // Extract text from each page
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items
+            .map((item: any) => item.str)
+            .join(' ');
+          textParts.push(pageText);
+        }
+        
+        text = textParts.join('\n\n');
         
         if (!text || text.trim().length < 20) {
           return NextResponse.json(
-            { error: 'Could not extract readable text from PDF. Please use the "Paste Text" option.' },
+            { error: 'Could not extract readable text from PDF. The file may be image-based. Please use the "Paste Text" option.' },
             { status: 400 }
           );
         }
