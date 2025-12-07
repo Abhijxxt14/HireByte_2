@@ -1,16 +1,14 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import type { Resume } from '@/lib/types';
+import type { Resume, AtsScoreResumeOutput } from '@/lib/types';
 import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
-import { getAtsScore } from '@/lib/actions';
 import { ResumeBuilder } from '@/components/resume-builder';
 import { ResumePreview } from '@/components/resume-preview';
 import { useToast } from '@/hooks/use-toast';
 import { FileText, ArrowLeft } from 'lucide-react';
 import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
-import type { AtsScoreResumeOutput } from '@/ai/flows/ats-score-resume';
 import { initialResumeData } from '@/lib/resume-template';
 
 const RESUME_STORAGE_KEY = 'firebase-studio-resume-data';
@@ -61,10 +59,46 @@ export function ResumeBuilderSection({ onBackToTop }: ResumeBuilderSectionProps)
     setJobDescription(jobDesc);
     
     try {
-      const result = await getAtsScore(resumeData, jobDesc);
-      if ('error' in result) {
-        throw new Error(result.error);
+      // Extract resume text
+      const resumeText = `
+Name: ${resumeData.personalInfo.name}
+
+SUMMARY:
+${resumeData.summary || 'N/A'}
+
+Contact: ${resumeData.personalInfo.email} | ${resumeData.personalInfo.phone}
+
+
+
+EDUCATION:
+${resumeData.education.map(edu => `${edu.degree} from ${edu.school} (${edu.graduationDate})`).join('\n')}
+
+
+EXPERIENCE:
+${resumeData.experience.map(exp => `${exp.jobTitle} at ${exp.company} (${exp.startDate} - ${exp.endDate})\n${exp.description}`).join('\n\n')}
+
+
+SKILLS:
+${resumeData.skills.join(', ')}
+      `.trim();
+
+      const response = await fetch('/api/ai/analyze-ats', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resumeText,
+          jobDescription: jobDesc,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Analysis failed' }));
+        throw new Error(errorData.error || 'Failed to analyze resume');
       }
+
+      const result = await response.json();
       setAtsResult(result);
       
       toast({
@@ -120,7 +154,7 @@ export function ResumeBuilderSection({ onBackToTop }: ResumeBuilderSectionProps)
         </div>
         
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-          <div className="space-y-8">
+          <div className="space-y-8 print:hidden">
             <ResumeBuilder 
               resumeData={resumeData}
               setResumeData={setResumeData}
@@ -132,7 +166,7 @@ export function ResumeBuilderSection({ onBackToTop }: ResumeBuilderSectionProps)
             />
           </div>
           
-          <div className="space-y-8">
+          <div className="space-y-8 print:w-full print:p-0 print:m-0">
             <ResumePreview resumeData={resumeData} />
           </div>
         </div>

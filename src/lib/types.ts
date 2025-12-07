@@ -81,3 +81,8 @@ export interface ResumeTextSections {
     experience: string;
     other: string;
 }
+
+export interface AtsScoreResumeOutput {
+  score: number;
+  feedback: string;
+}

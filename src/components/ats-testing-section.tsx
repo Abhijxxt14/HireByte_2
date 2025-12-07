@@ -8,8 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { getAtsScore } from "@/lib/actions";
-import type { AtsScoreResumeOutput } from "@/ai/flows/ats-score-resume";
+import { validateResumeText } from "@/lib/file-utils";
 import { AtsScoreDisplay } from "@/components/ats-score-display";
 
 interface ATSTestingSectionProps {
@@ -19,10 +18,12 @@ interface ATSTestingSectionProps {
 export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps) {
   const { ref, isIntersecting } = useIntersectionObserver({ threshold: 0.2 });
   const [file, setFile] = useState<File | null>(null);
+  const [resumeText, setResumeText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [atsResult, setAtsResult] = useState<AtsScoreResumeOutput | null>(null);
+  const [atsResult, setAtsResult] = useState<{score: number; feedback: string} | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [useTextInput, setUseTextInput] = useState(false);
   const { toast } = useToast();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -54,56 +55,113 @@ export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps)
     }
   }, [toast]);
 
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      
+      // For text files, extract immediately
+      if (selectedFile.type === 'text/plain') {
+        try {
+          const text = await selectedFile.text();
+          setResumeText(text);
+          toast({
+            title: "File loaded",
+            description: `Loaded ${text.length} characters from your resume.`
+          });
+        } catch (error) {
+          toast({
+            variant: "destructive",
+            title: "Error reading file",
+            description: "Could not read the text file."
+          });
+        }
+      } else {
+        // For PDF/Word files, we'll extract on the server side during analysis
+        toast({
+          title: "File uploaded",
+          description: "Your resume will be processed when you click Analyze."
+        });
+      }
     }
   };
 
   const handleAnalyze = async () => {
-    if (!file || !jobDescription.trim()) {
+    if (!jobDescription.trim()) {
       toast({
         variant: "destructive",
         title: "Missing information",
-        description: "Please upload a resume and provide a job description."
+        description: "Please provide a job description."
+      });
+      return;
+    }
+
+    if (!file && !resumeText.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Missing information",
+        description: "Please upload a resume file or paste resume text."
       });
       return;
     }
 
     setIsLoading(true);
     try {
-      // For now, we'll simulate the analysis since file parsing isn't implemented
-      // In a real implementation, you'd extract text from the uploaded file
-      const mockResumeData = {
-        personalInfo: {
-          name: "Sample User",
-          email: "sample@email.com",
-          phone: "123-456-7890",
-          address: "City, State",
-          linkedin: "",
-          portfolio: "",
-          github: ""
-        },
-        summary: "Sample resume summary extracted from uploaded file",
-        experience: [],
-        education: [],
-        skills: ["Sample", "Skills"],
-        projects: [],
-        certifications: [],
-        awards: [],
-        volunteerExperience: [],
-        languages: []
-      };
+      let finalResumeText = resumeText;
       
-      const result = await getAtsScore(mockResumeData, jobDescription);
-      if ('error' in result) {
-        throw new Error(result.error);
+      // If there's a file but no resume text, extract it on the server
+      if (file && !resumeText.trim()) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const extractResponse = await fetch('/api/ai/extract-text', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!extractResponse.ok) {
+          throw new Error('Failed to extract text from file');
+        }
+        
+        const { text } = await extractResponse.json();
+        finalResumeText = text;
+        setResumeText(text);
       }
+
+      // Validate resume text
+      const validation = validateResumeText(finalResumeText);
+      if (!validation.isValid) {
+        toast({
+          variant: "destructive",
+          title: "Resume content needed",
+          description: validation.error
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await fetch('/api/ai/analyze-ats', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resumeText: finalResumeText.trim(),
+          jobDescription: jobDescription.trim()
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Analysis failed');
+      }
+
+      const result = await response.json();
       setAtsResult(result);
       
       toast({
         title: "Analysis Complete!",
-        description: "Your resume has been analyzed successfully."
+        description: `Your resume scored ${result.score}/100 for this job.`
       });
     } catch (error) {
       console.error("Error analyzing resume:", error);
@@ -142,65 +200,136 @@ export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps)
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8 mb-12">
-            {/* File Upload Section */}
+            {/* Resume Input Section */}
             <Card className="border-2 border-dashed border-border hover:border-primary/50 transition-colors">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5" />
-                  Upload Resume
+                  <FileText className="h-5 w-5" />
+                  Resume Content
                 </CardTitle>
                 <CardDescription>
-                  Support for PDF and Word documents
+                  Upload a file or paste your resume text
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div
-                  className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                    dragActive 
-                      ? "border-primary bg-primary/5" 
-                      : "border-muted-foreground/25 hover:border-primary/50"
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleFileInput}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                  
-                  {file ? (
-                    <div className="flex flex-col items-center gap-3">
-                      <CheckCircle className="h-12 w-12 text-green-500" />
-                      <div>
-                        <p className="font-medium">{file.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {(file.size / 1024 / 1024).toFixed(1)} MB
-                        </p>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2 mb-4">
+                  <Button
+                    variant={!useTextInput ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setUseTextInput(false)}
+                  >
+                    Upload File
+                  </Button>
+                  <Button
+                    variant={useTextInput ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setUseTextInput(true)}
+                  >
+                    Paste Text
+                  </Button>
+                </div>
+
+                {!useTextInput ? (
+                  <div
+                    className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                      dragActive 
+                        ? "border-primary bg-primary/5" 
+                        : "border-muted-foreground/25 hover:border-primary/50"
+                    }`}
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                  >
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,.txt"
+                      onChange={handleFileInput}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    
+                    {file ? (
+                      <div className="flex flex-col items-center gap-3">
+                        <CheckCircle className="h-12 w-12 text-green-500" />
+                        <div>
+                          <p className="font-medium">{file.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {(file.size / 1024 / 1024).toFixed(1)} MB
+                          </p>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setFile(null);
+                            setResumeText("");
+                          }}
+                        >
+                          Change File
+                        </Button>
                       </div>
-                      <Button 
-                        variant="outline" 
+                    ) : (
+                      <div className="flex flex-col items-center gap-3">
+                        <Upload className="h-12 w-12 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">Drop your resume here</p>
+                          <p className="text-sm text-muted-foreground">
+                            or click to browse files (PDF, DOC, TXT)
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label htmlFor="resume-text">Resume Content</Label>
+                      <Button
+                        variant="ghost"
                         size="sm"
-                        onClick={() => setFile(null)}
+                        onClick={() => setResumeText(`John Smith
+Software Engineer
+john.smith@email.com | (555) 123-4567 | linkedin.com/in/johnsmith
+
+PROFESSIONAL SUMMARY
+Experienced Full-Stack Developer with 5+ years developing scalable web applications. Proficient in React, Node.js, and cloud technologies. Led team of 4 developers to deliver projects 20% ahead of schedule.
+
+EXPERIENCE
+Senior Software Engineer | TechCorp Inc | 2022-Present
+• Developed microservices architecture serving 100K+ daily users
+• Reduced API response time by 40% through optimization
+• Led migration to AWS cloud, cutting infrastructure costs by 30%
+
+Software Engineer | StartupXYZ | 2020-2022
+• Built responsive web applications using React and TypeScript
+• Collaborated with cross-functional team of 8 members
+• Implemented automated testing, reducing bugs by 25%
+
+EDUCATION
+Bachelor of Computer Science | State University | 2020
+
+SKILLS
+Programming: JavaScript, Python, Java, TypeScript
+Frameworks: React, Node.js, Express, Next.js
+Cloud: AWS, Docker, Kubernetes
+Databases: PostgreSQL, MongoDB`)}
+                        className="text-xs"
                       >
-                        Change File
+                        Use Sample Resume
                       </Button>
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-3">
-                      <FileText className="h-12 w-12 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">Drop your resume here</p>
-                        <p className="text-sm text-muted-foreground">
-                          or click to browse files
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                    <Textarea
+                      id="resume-text"
+                      placeholder="Paste your resume content here. Include your experience, skills, education, and other relevant information..."
+                      value={resumeText}
+                      onChange={(e) => setResumeText(e.target.value)}
+                      className="min-h-[200px] resize-none"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {resumeText.length}/20000 characters
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -217,7 +346,41 @@ export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps)
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <Label htmlFor="job-description">Job Requirements</Label>
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="job-description">Job Requirements</Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setJobDescription(`Senior Software Engineer - Full Stack
+
+We are seeking a talented Senior Software Engineer to join our growing team. The ideal candidate will have 5+ years of experience in full-stack development and a passion for building scalable applications.
+
+REQUIRED QUALIFICATIONS:
+• 5+ years of software development experience
+• Strong proficiency in JavaScript, TypeScript, and modern frameworks
+• Experience with React, Node.js, and RESTful APIs
+• Knowledge of cloud platforms (AWS, Azure, or GCP)
+• Experience with databases (SQL and NoSQL)
+• Familiarity with DevOps practices and CI/CD pipelines
+
+PREFERRED QUALIFICATIONS:
+• Bachelor's degree in Computer Science or related field
+• Experience with microservices architecture
+• Knowledge of containerization (Docker, Kubernetes)
+• Experience leading technical projects
+• Strong problem-solving and communication skills
+
+RESPONSIBILITIES:
+• Design and develop scalable web applications
+• Collaborate with cross-functional teams
+• Mentor junior developers
+• Participate in code reviews and technical discussions
+• Contribute to system architecture decisions`)}
+                      className="text-xs"
+                    >
+                      Use Sample Job
+                    </Button>
+                  </div>
                   <Textarea
                     id="job-description"
                     placeholder="Paste the job description here. Include required skills, qualifications, and responsibilities..."
@@ -235,7 +398,7 @@ export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps)
             <Button
               size="lg"
               onClick={handleAnalyze}
-              disabled={!file || !jobDescription.trim() || isLoading}
+              disabled={(!file && !resumeText.trim()) || !jobDescription.trim() || isLoading}
               className="px-8 py-6 text-lg"
             >
               {isLoading ? (

@@ -9,9 +9,10 @@ import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 interface HeroSectionProps {
   onScrollToATS: () => void;
   onScrollToBuilder: () => void;
+  onOpenAIDialog: () => void;
 }
 
-export function HeroSection({ onScrollToATS, onScrollToBuilder }: HeroSectionProps) {
+export function HeroSection({ onScrollToATS, onScrollToBuilder, onOpenAIDialog }: HeroSectionProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [atsScore, setAtsScore] = useState(0);
   const [resumesCreated, setResumesCreated] = useState(0);
@@ -53,18 +54,18 @@ export function HeroSection({ onScrollToATS, onScrollToBuilder }: HeroSectionPro
   const features = [
     {
       icon: <Zap className="h-6 w-6" />,
-      title: "AI-Powered ATS Scoring",
+      title: "AI Resume Creation",
+      description: "Chat with AI to create professional resumes from conversation"
+    },
+    {
+      icon: <Target className="h-6 w-6" />,
+      title: "ATS Compatibility Check",
       description: "Get instant feedback on how well your resume matches job requirements"
     },
     {
       icon: <FileText className="h-6 w-6" />,
       title: "Professional Templates",
       description: "Build stunning resumes with our professionally designed templates"
-    },
-    {
-      icon: <Target className="h-6 w-6" />,
-      title: "Job-Targeted Optimization",
-      description: "Optimize your resume for specific job descriptions and industries"
     },
     {
       icon: <Users className="h-6 w-6" />,
@@ -112,8 +113,8 @@ export function HeroSection({ onScrollToATS, onScrollToBuilder }: HeroSectionPro
             <h2 className={`text-2xl sm:text-4xl lg:text-5xl font-bold mb-6 leading-tight transition-all duration-1000 delay-400 ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}>
-              Build Resumes That Get You
-              <span className="text-primary block">Hired Faster</span>
+              Build Resumes with
+              <span className="text-primary block">AI-Powered Assistance</span>
             </h2>
             
             <p 
@@ -122,14 +123,23 @@ export function HeroSection({ onScrollToATS, onScrollToBuilder }: HeroSectionPro
               }`}
               itemProp="description"
             >
-              Create professional, ATS-friendly resumes with our AI-powered platform. 
-              Test your existing resume or build a new one from scratch with expert guidance.
+              Chat with our AI to create professional, ATS-friendly resumes instantly. 
+              Just describe your experience and let AI craft your perfect resume in minutes.
             </p>
             
             {/* CTA Buttons */}
             <nav className={`flex flex-col sm:flex-row gap-4 justify-center mb-16 transition-all duration-1000 delay-800 ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`} aria-label="Main actions">
+              <Button
+                size="lg"
+                onClick={onOpenAIDialog}
+                className="text-lg px-8 py-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                aria-label="Create resume with AI assistance"
+              >
+                <Zap className="mr-2 h-5 w-5" aria-hidden="true" />
+                Create with AI
+              </Button>
               <Button
                 size="lg"
                 onClick={onScrollToATS}

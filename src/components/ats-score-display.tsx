@@ -7,11 +7,70 @@ import { PolarAngleAxis, RadialBar, RadialBarChart } from "recharts"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer } from "@/components/ui/chart"
 import { Separator } from "./ui/separator"
-import type { AtsScoreResumeOutput } from "@/ai/flows/ats-score-resume"
 import { ScrollArea } from "./ui/scroll-area"
 
 interface AtsScoreDisplayProps {
-  result: AtsScoreResumeOutput
+  result: {
+    score: number;
+    feedback: string;
+  }
+}
+
+// Parse feedback text with markdown-like formatting
+function parseFeedback(text: string) {
+  const lines = text.split('\n').filter(line => line.trim());
+  const sections: React.ReactNode[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i].trim();
+
+    // Parse section headers (e.g., **STRENGTHS:**)
+    if (line.startsWith('**') && line.endsWith('**')) {
+      const header = line.replace(/\*\*/g, '');
+      sections.push(
+        <div key={`header-${i}`} className="mt-4 mb-2 first:mt-0">
+          <h3 className="text-lg font-bold text-primary">{header}</h3>
+        </div>
+      );
+      i++;
+      continue;
+    }
+
+    // Parse numbered list items
+    if (/^\d+\./.test(line)) {
+      const match = line.match(/^\d+\.\s*\*\*(.*?)\*\*:\s*(.*)/);
+      if (match) {
+        const [, title, content] = match;
+        sections.push(
+          <div key={`item-${i}`} className="mb-3 pl-4 border-l-2 border-primary/30">
+            <p className="font-semibold text-foreground">{title}</p>
+            <p className="text-sm text-muted-foreground mt-1">{content}</p>
+          </div>
+        );
+      } else {
+        sections.push(
+          <p key={`line-${i}`} className="text-sm text-foreground mb-2 pl-4">
+            {line}
+          </p>
+        );
+      }
+      i++;
+      continue;
+    }
+
+    // Parse regular text
+    if (line) {
+      sections.push(
+        <p key={`para-${i}`} className="text-sm text-muted-foreground mb-2 leading-relaxed">
+          {line}
+        </p>
+      );
+    }
+    i++;
+  }
+
+  return sections;
 }
 
 export function AtsScoreDisplay({ result }: AtsScoreDisplayProps) {
@@ -21,6 +80,8 @@ export function AtsScoreDisplay({ result }: AtsScoreDisplayProps) {
       label: "Score",
     },
   }
+
+  const parsedFeedback = parseFeedback(result.feedback);
 
   return (
     <Card className="mt-4 border-primary/50">
@@ -45,17 +106,19 @@ export function AtsScoreDisplay({ result }: AtsScoreDisplayProps) {
           </RadialBarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
-        <div className="flex items-center p-2 font-medium">
+      <CardFooter className="flex-col gap-4 text-sm">
+        <div className="flex items-center p-2 font-medium justify-center w-full">
             Your Score:
-            <span className="ml-2 text-2xl font-bold text-primary">{result.score}/100</span>
+            <span className="ml-3 text-4xl font-bold bg-gradient-to-r from-primary via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              {result.score}/100
+            </span>
         </div>
         <Separator className="my-2" />
         <div className="w-full text-left">
-            <h4 className="font-semibold mb-2 text-center">Actionable Feedback</h4>
-             <ScrollArea className="h-48">
-                <div className="p-2 bg-muted/50 rounded-lg whitespace-pre-wrap text-sm">
-                   {result.feedback}
+            <h4 className="font-bold text-lg mb-4 text-primary">Actionable Feedback</h4>
+             <ScrollArea className="h-80 pr-4">
+                <div className="space-y-2">
+                   {parsedFeedback}
                 </div>
             </ScrollArea>
         </div>

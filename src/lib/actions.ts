@@ -1,10 +1,9 @@
 
 "use server";
 
-import type { Resume } from "@/lib/types";
+import type { Resume, AtsScoreResumeOutput } from "@/lib/types";
 import { sanitizeAndTrim } from "./utils";
 import { checkApiConfig, getApiConfigErrorMessage } from "./api-config";
-import { atsScoreResume, type AtsScoreResumeOutput } from "@/ai/flows/ats-score-resume";
 import { extractTextFromResume } from "./resume-text-extractor";
 
 export async function getAtsScore(
@@ -34,17 +33,30 @@ export async function getAtsScore(
   const sanitizedResumeText = sanitizeAndTrim(resumeText, 20000);
   
   try {
-    const result = await atsScoreResume({
-      resumeText: sanitizedResumeText,
-      jobDescription: sanitizedJobDescription,
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:9002'}/api/ai/analyze-ats`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        resumeText: sanitizedResumeText,
+        jobDescription: sanitizedJobDescription,
+      }),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
     return result;
   } catch (e: any) {
     console.error("Critical Error in getAtsScore action:", e);
     
-    // Check for specific Genkit/AI-related error messages
-    if (e.message && (e.message.includes('API key') || e.message.includes('permission denied') || e.message.includes('GOOGLE_GENAI_API_KEY'))) {
-        return { error: "Could not connect to the AI service. Please check that your Google AI API key is properly configured." };
+    // Check for specific error messages
+    if (e.message && (e.message.includes('API key') || e.message.includes('permission denied'))) {
+        return { error: "Could not connect to the AI service. Please check that your API keys are properly configured." };
     }
     
     if (e.message && e.message.includes('403')) {

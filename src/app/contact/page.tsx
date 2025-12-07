@@ -2,25 +2,6 @@
 "use client";
 
 import { useState } from 'react';
-import { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: 'Contact Us - Get Help with Resume Building | HireByte',
-  description: 'Contact HireByte for support with resume building, ATS scoring, and career advice. Get in touch with our team for personalized assistance.',
-  keywords: [
-    'contact hirebyte',
-    'resume help',
-    'customer support',
-    'career assistance',
-    'resume builder support'
-  ],
-  openGraph: {
-    title: 'Contact HireByte - Resume Building Support',
-    description: 'Get help with resume building and ATS optimization. Contact our team for personalized career assistance.',
-    url: '/contact',
-  },
-};
-import { UserNav } from '@/components/auth/user-nav';
 import { Footer } from '@/components/footer';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
@@ -61,7 +42,6 @@ export default function ContactPage() {
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <UserNav />
         </div>
       </header>
       <main className="flex-grow container mx-auto p-4 md:p-8 flex items-center justify-center">

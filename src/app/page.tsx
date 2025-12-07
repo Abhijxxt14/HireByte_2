@@ -7,9 +7,13 @@ import { SplashScreen } from '@/components/splash-screen';
 import { HeroSection } from '@/components/hero-section';
 import { ATSTestingSection } from '@/components/ats-testing-section';
 import { ResumeBuilderSection } from '@/components/resume-builder-section';
+import { AIResumeDialog } from '@/components/ai-resume-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true);
+  const [showAIDialog, setShowAIDialog] = useState(false);
+  const [showComingSoon, setShowComingSoon] = useState(false);
   const atsTestingRef = useRef<HTMLDivElement>(null);
   const resumeBuilderRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -32,6 +36,7 @@ export default function Home() {
   const scrollToATS = () => scrollToSection(atsTestingRef);
   const scrollToBuilder = () => scrollToSection(resumeBuilderRef);
   const scrollToTop = () => scrollToSection(heroRef);
+  const openAIDialog = () => setShowComingSoon(true);
 
   if (showSplash) {
     return <SplashScreen />;
@@ -84,6 +89,7 @@ export default function Home() {
           <HeroSection 
             onScrollToATS={scrollToATS}
             onScrollToBuilder={scrollToBuilder}
+            onOpenAIDialog={openAIDialog}
           />
         </div>
         
@@ -99,6 +105,23 @@ export default function Home() {
           />
         </div>
       </main>
+      
+      <AIResumeDialog 
+        open={showAIDialog}
+        onOpenChange={setShowAIDialog}
+      />
+
+      <AlertDialog open={showComingSoon} onOpenChange={setShowComingSoon}>
+        <AlertDialogContent className="border-primary/50">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl">Coming Soon! 🚀</AlertDialogTitle>
+            <AlertDialogDescription className="text-base mt-4">
+              The AI Resume Creation feature is coming soon. We're working hard to bring you an amazing experience to create professional resumes through conversation with our AI assistant.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogAction className="mt-4">Got it!</AlertDialogAction>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

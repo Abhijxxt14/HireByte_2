@@ -11,8 +11,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AtsScoreDisplay } from "@/components/ats-score-display";
 import { Bot, BrainCircuit, Loader2, PlusCircle, Trash2, User, GraduationCap, Briefcase, Wrench, Mic, FolderKanban, Award, Languages, Handshake, Ribbon } from "lucide-react";
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { AtsScoreResumeOutput } from "@/ai/flows/ats-score-resume";
+import type { AtsScoreResumeOutput } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 const SpeechRecognition =
   (typeof window !== 'undefined' && ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
@@ -26,6 +27,31 @@ interface ResumeBuilderProps {
   isLoading: boolean;
   atsResult: AtsScoreResumeOutput | null;
 }
+/*
+Order for the resume sections:
+
+1. Contact
+2. Summary
+3. Skills
+4. Education
+5. Experience
+6. Projects
+7. Certifications
+8. Languages
+
+When mapping/rendering the sections in the JSX below, ensure the order is:
+Contact, Summary, Skills, Education, Experience, Projects, Certifications, Languages.
+
+*/
+
+// Order: Contact, Summary, Skills, Education, Experience, Projects, Certifications, Languages
+
+// 1. Contact Section (TO DO: insert Contact section UI here)
+// Example placeholder code, update as necessary:
+
+
+
+
 
 export function ResumeBuilder({
   resumeData,
@@ -36,7 +62,9 @@ export function ResumeBuilder({
   isLoading,
   atsResult,
 }: ResumeBuilderProps) {
+  const { toast } = useToast();
   const [isListening, setIsListening] = useState<string | null>(null);
+  const [micPermissionDenied, setMicPermissionDenied] = useState(false);
   const [skillsInputValue, setSkillsInputValue] = useState<string>("");
   const recognitionRef = useRef<any>(null);
   const fieldCacheRef = useRef<Record<string, string>>({});
@@ -67,9 +95,12 @@ export function ResumeBuilder({
     
     switch (fieldName) {
         case 'summary': return resumeData.summary;
-        case 'experience': return index !== -1 ? resumeData.experience[index].description : "";
-        case 'project': return index !== -1 && resumeData.projects ? resumeData.projects[index].description : "";
         case 'skills': return skillsInputValue;
+        
+        case 'project': return index !== -1 && resumeData.projects ? resumeData.projects[index].description : "";
+        case 'experience': return index !== -1 ? resumeData.experience[index].description : "";
+        case 'volunteer': return index !== -1 && resumeData.volunteerExperience ? resumeData.volunteerExperience[index].description : "";
+        
         case 'jobDescription': return jobDescription;
         default: return "";
     }
@@ -86,6 +117,20 @@ export function ResumeBuilder({
     case 'summary':
         newResumeData.summary = newText;
         break;
+
+    case 'skills':
+        setSkillsInputValue(newText);
+        // Also update the resume data with processed skills
+        newResumeData.skills = newText.split(",").map(s => s.trim()).filter(s => s.length > 0);
+        break;
+        case 'project':
+          if (index !== -1 && newResumeData.projects) {
+          const newProjects = [...newResumeData.projects];
+          newProjects[index] = { ...newProjects[index], description: newText };
+          newResumeData.projects = newProjects;
+          }
+          break;
+
     case 'experience':
         if (index !== -1) {
         const newExperience = [...newResumeData.experience];
@@ -93,18 +138,15 @@ export function ResumeBuilder({
         newResumeData.experience = newExperience;
         }
         break;
-    case 'project':
-        if (index !== -1 && newResumeData.projects) {
-        const newProjects = [...newResumeData.projects];
-        newProjects[index] = { ...newProjects[index], description: newText };
-        newResumeData.projects = newProjects;
+    
+    case 'volunteer':
+        if (index !== -1 && newResumeData.volunteerExperience) {
+        const newVolunteer = [...newResumeData.volunteerExperience];
+        newVolunteer[index] = { ...newVolunteer[index], description: newText };
+        newResumeData.volunteerExperience = newVolunteer;
         }
         break;
-    case 'skills':
-        setSkillsInputValue(newText);
-        // Also update the resume data with processed skills
-        newResumeData.skills = newText.split(",").map(s => s.trim()).filter(s => s.length > 0);
-        break;
+    
     case 'jobDescription':
         // This case doesn't modify resumeData, handled separately
         setJobDescription(newText);
@@ -113,43 +155,50 @@ export function ResumeBuilder({
     setResumeData(newResumeData);
   }, [resumeData, setResumeData, setJobDescription]);
   
-  const toggleListening = useCallback((field: string) => {
+  const toggleListening = useCallback(async (field: string) => {
+    console.log("[Speech] Toggle listening called for field:", field);
+    console.log("[Speech] Current listening state:", isListening);
+    
     if (isListening) {
+      console.log("[Speech] Stopping recognition...");
       recognitionRef.current?.stop();
       return;
     }
 
-    const currentText = getFieldValue(field);
-    fieldCacheRef.current[field] = currentText ? currentText.trim() + " " : "";
-
-    setIsListening(field);
-    try {
-        recognitionRef.current?.start();
-    } catch (e) {
-        console.error("Error starting speech recognition:", e);
-        if (activeFieldRef.current) {
-          delete fieldCacheRef.current[activeFieldRef.current];
-        }
-        setIsListening(null);
-    }
-  }, [isListening, getFieldValue]);
-
-  useEffect(() => {
-    if (!SpeechRecognition) {
-      console.warn("Speech Recognition API is not supported in this browser.");
+    // Check browser support
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      toast({
+        title: "Speech Recognition Not Supported",
+        description: "Your browser doesn't support speech recognition. Please use Chrome, Edge, or Safari.",
+        variant: "destructive",
+      });
       return;
     }
 
-    const recognition = new SpeechRecognition();
+    // CREATE INSTANCE HERE → INSIDE USER GESTURE
+    console.log("[Speech] Creating SpeechRecognition instance...");
+    const recognition = new SR();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = 'en-US';
+    recognition.lang = "en-US";
+    
+    recognitionRef.current = recognition;
+
+    // Attach handlers
+    recognition.onstart = () => {
+      console.log("[Speech] Recognition started - microphone is active");
+    };
 
     recognition.onresult = (event: any) => {
+      console.log("[Speech] Recognition result received");
       const activeField = activeFieldRef.current;
-      if (!activeField) return;
+      if (!activeField) {
+        console.warn("[Speech] No active field set");
+        return;
+      }
 
-      const originalText = fieldCacheRef.current[activeField] ?? '';
+      const cachedText = fieldCacheRef.current[activeField] || '';
       let interimTranscript = '';
       let finalTranscript = '';
 
@@ -161,37 +210,98 @@ export function ResumeBuilder({
         }
       }
       
-      const newText = originalText + finalTranscript + interimTranscript;
+      console.log("[Speech] Cached text:", cachedText);
+      console.log("[Speech] Final transcript:", finalTranscript);
+      console.log("[Speech] Interim transcript:", interimTranscript);
+      
+      // Combine: cached + final + interim
+      const newText = cachedText + finalTranscript + interimTranscript;
       updateField(activeField, newText);
       
+      // Update cache with finalized text only
       if (finalTranscript.trim()) {
-        const updatedCacheText = (originalText + finalTranscript).trim() + ' ';
-        fieldCacheRef.current[activeField] = updatedCacheText;
+        fieldCacheRef.current[activeField] = cachedText + finalTranscript;
       }
     };
     
     recognition.onend = () => {
-      if (activeFieldRef.current) {
-         delete fieldCacheRef.current[activeFieldRef.current];
-      }
+      console.log("[Speech] Recognition ended");
+      activeFieldRef.current = null;
       setIsListening(null);
     };
-    
+
     recognition.onerror = (event: any) => {
-      if (event.error === 'aborted' || event.error === 'no-speech') {
+      console.error("[Speech] Recognition error:", event.error);
+      
+      if (event.error === 'aborted') {
+        console.log("[Speech] Recognition aborted by user");
         return;
       }
-      console.error("Speech recognition error", event.error);
+      
+      if (event.error === 'no-speech') {
+        console.log("[Speech] No speech detected");
+        toast({
+          title: "No Speech Detected",
+          description: "Please try speaking again.",
+          variant: "destructive",
+        });
+        setIsListening(null);
+        return;
+      }
+      
+      let errorMessage = "An error occurred while processing speech.";
+      
+      switch (event.error) {
+        case 'not-allowed':
+          errorMessage = "Microphone access denied. Please enable microphone permissions in your browser settings.";
+          setMicPermissionDenied(true);
+          break;
+        case 'audio-capture':
+          errorMessage = "No microphone found. Please connect a microphone.";
+          break;
+        case 'network':
+          errorMessage = "Network error occurred. Please check your connection.";
+          break;
+        case 'service-not-allowed':
+          errorMessage = "Speech recognition service is not available.";
+          break;
+      }
+      
+      toast({
+        title: "Speech Recognition Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      
       setIsListening(null);
     };
 
-    recognitionRef.current = recognition;
-    
-    return () => {
-        recognitionRef.current?.abort();
-    }
-  }, [updateField]);
+    // Prepare cache and refs
+    const currentText = getFieldValue(field);
+    activeFieldRef.current = field;
+    fieldCacheRef.current[field] = currentText || "";
 
+    // Start recognition
+    try {
+      recognition.start();
+      setIsListening(field);
+      console.log("[Speech] Recognition started successfully!");
+      toast({
+        title: "🎤 Listening...",
+        description: "Speak now. Click the microphone again to stop.",
+      });
+    } catch (e: any) {
+      console.error("[Speech] Error starting speech recognition:", e);
+      activeFieldRef.current = null;
+      setIsListening(null);
+      
+      toast({
+        title: "Speech Recognition Error",
+        description: "Unable to start speech recognition. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [isListening, getFieldValue, toast, updateField]);
 
   const handlePersonalInfoChange = (field: string, value: string) => {
     setResumeData({ ...resumeData, personalInfo: { ...resumeData.personalInfo, [field]: value } });
@@ -386,6 +496,27 @@ export function ResumeBuilder({
         </div>
       </CardHeader>
       <CardContent>
+        {micPermissionDenied && SpeechRecognition && (
+          <div className="mb-4 p-4 border border-destructive/50 bg-destructive/10 rounded-lg">
+            <div className="flex items-start gap-3">
+              <Mic className="h-5 w-5 text-destructive mt-0.5" />
+              <div className="flex-1">
+                <h4 className="font-semibold text-destructive mb-1">Microphone Access Required</h4>
+                <p className="text-sm text-muted-foreground mb-2">
+                  To use speech-to-text, you need to allow microphone access. Click the lock/info icon in your browser's address bar and enable microphone permissions, then reload this page.
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => window.location.reload()} 
+                  className="mt-2"
+                >
+                  Reload Page
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
         <Accordion type="single" collapsible defaultValue="personal-info" className="w-full">
           <AccordionItem value="personal-info">
             <AccordionTrigger className="text-lg font-semibold"><User className="mr-3 h-5 w-5 text-primary accordion-icon"/>Personal Information</AccordionTrigger>
@@ -419,6 +550,78 @@ export function ResumeBuilder({
             </AccordionContent>
           </AccordionItem>
 
+          
+          <AccordionItem value="skills">
+            <AccordionTrigger className="text-lg font-semibold"><Wrench className="mr-3 h-5 w-5 text-primary accordion-icon"/>Skills</AccordionTrigger>
+            <AccordionContent className="pt-2">
+                <div className="relative">
+                    <Label htmlFor="skills">Skills (comma-separated)</Label>
+                    <Textarea 
+                      id="skills" 
+                      value={skillsInputValue} 
+                      onChange={(e) => handleSkillsChange(e.target.value)}
+                      onBlur={(e) => handleSkillsBlur(e.target.value)}
+                      onKeyDown={handleSkillsKeyDown}
+                      className="pr-10"
+                      placeholder="e.g., JavaScript, React, Node.js, Python"
+                    />
+                     <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
+                        {SpeechRecognition && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('skills')}>
+                                {isListening === 'skills' ? <Mic className={cn("h-4 w-4 text-primary animate-pulse-mic")} /> : <Mic className="h-4 w-4" />}
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="projects">
+            <AccordionTrigger className="text-lg font-semibold"><FolderKanban className="mr-3 h-5 w-5 text-primary accordion-icon"/>Projects (optional)</AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2">
+              {resumeData.projects?.map((proj, index) => (
+                <div key={proj.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
+                  <div><Label>Project Name</Label><Input value={proj.name} onChange={(e) => handleProjectChange(index, "name", e.target.value)} /></div>
+                  <div className="relative">
+                    <Label>Description</Label>
+                    <Textarea value={proj.description} onChange={(e) => handleProjectChange(index, "description", e.target.value)} rows={3} placeholder="Describe your project..." className="pr-10" />
+                    <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
+                        {SpeechRecognition && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening(`project-${index}`)}>
+                                {isListening === `project-${index}` ? <Mic className={cn("h-4 w-4 text-primary animate-pulse-mic")} /> : <Mic className="h-4 w-4" />}
+                            </Button>
+                        )}
+                    </div>
+                  </div>
+                  <div><Label>Demo Link</Label><Input value={proj.link} onChange={(e) => handleProjectChange(index, "link", e.target.value)} /></div>
+                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeProject(index)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addProject} className="transition-transform hover:scale-105"><PlusCircle className="mr-2"/>Add Project</Button>
+            </AccordionContent>
+          </AccordionItem>
+
+
+          <AccordionItem value="education">
+            <AccordionTrigger className="text-lg font-semibold"><GraduationCap className="mr-3 h-5 w-5 text-primary accordion-icon"/>Education</AccordionTrigger>
+            <AccordionContent className="space-y-4 pt-2">
+              {resumeData.education?.map((edu, index) => (
+                <div key={edu.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><Label>School/University</Label><Input value={edu.school} onChange={(e) => handleEducationChange(index, "school", e.target.value)} /></div>
+                    <div><Label>Degree & Major</Label><Input value={edu.degree} onChange={(e) => handleEducationChange(index, "degree", e.target.value)} /></div>
+                    <div><Label>Location</Label><Input value={edu.location} onChange={(e) => handleEducationChange(index, "location", e.target.value)} /></div>
+                    <div><Label>Graduation Date</Label><Input value={edu.graduationDate} onChange={(e) => handleEducationChange(index, "graduationDate", e.target.value)} /></div>
+                    <div><Label>CGPA/Percentage</Label><Input value={edu.grade || ""} onChange={(e) => handleEducationChange(index, "grade", e.target.value)} placeholder="e.g., 3.8/4.0 or 85%" /></div>
+                  </div>
+                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeEducation(index)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addEducation} className="transition-transform hover:scale-105"><PlusCircle className="mr-2"/>Add Education</Button>
+            </AccordionContent>
+          </AccordionItem>
+
+
+
           <AccordionItem value="experience">
             <AccordionTrigger className="text-lg font-semibold"><Briefcase className="mr-3 h-5 w-5 text-primary accordion-icon"/>Work Experience</AccordionTrigger>
             <AccordionContent className="space-y-4 pt-2">
@@ -449,74 +652,10 @@ export function ResumeBuilder({
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="education">
-            <AccordionTrigger className="text-lg font-semibold"><GraduationCap className="mr-3 h-5 w-5 text-primary accordion-icon"/>Education</AccordionTrigger>
-            <AccordionContent className="space-y-4 pt-2">
-              {resumeData.education?.map((edu, index) => (
-                <div key={edu.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><Label>School/University</Label><Input value={edu.school} onChange={(e) => handleEducationChange(index, "school", e.target.value)} /></div>
-                    <div><Label>Degree & Major</Label><Input value={edu.degree} onChange={(e) => handleEducationChange(index, "degree", e.target.value)} /></div>
-                    <div><Label>Location</Label><Input value={edu.location} onChange={(e) => handleEducationChange(index, "location", e.target.value)} /></div>
-                    <div><Label>Graduation Date</Label><Input value={edu.graduationDate} onChange={(e) => handleEducationChange(index, "graduationDate", e.target.value)} /></div>
-                    <div><Label>CGPA/Percentage</Label><Input value={edu.grade || ""} onChange={(e) => handleEducationChange(index, "grade", e.target.value)} placeholder="e.g., 3.8/4.0 or 85%" /></div>
-                  </div>
-                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeEducation(index)}><Trash2 className="h-4 w-4" /></Button>
-                </div>
-              ))}
-              <Button variant="outline" onClick={addEducation} className="transition-transform hover:scale-105"><PlusCircle className="mr-2"/>Add Education</Button>
-            </AccordionContent>
-          </AccordionItem>
+         
 
-          <AccordionItem value="projects">
-            <AccordionTrigger className="text-lg font-semibold"><FolderKanban className="mr-3 h-5 w-5 text-primary accordion-icon"/>Projects (optional)</AccordionTrigger>
-            <AccordionContent className="space-y-4 pt-2">
-              {resumeData.projects?.map((proj, index) => (
-                <div key={proj.id} className="p-4 border rounded-lg space-y-4 relative bg-background/50 transition-colors hover:border-primary/50">
-                  <div><Label>Project Name</Label><Input value={proj.name} onChange={(e) => handleProjectChange(index, "name", e.target.value)} /></div>
-                  <div className="relative">
-                    <Label>Description</Label>
-                    <Textarea value={proj.description} onChange={(e) => handleProjectChange(index, "description", e.target.value)} rows={3} placeholder="Describe your project..." className="pr-10" />
-                    <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
-                        {SpeechRecognition && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening(`project-${index}`)}>
-                                {isListening === `project-${index}` ? <Mic className={cn("h-4 w-4 text-primary animate-pulse-mic")} /> : <Mic className="h-4 w-4" />}
-                            </Button>
-                        )}
-                    </div>
-                  </div>
-                  <div><Label>Demo Link</Label><Input value={proj.link} onChange={(e) => handleProjectChange(index, "link", e.target.value)} /></div>
-                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeProject(index)}><Trash2 className="h-4 w-4" /></Button>
-                </div>
-              ))}
-              <Button variant="outline" onClick={addProject} className="transition-transform hover:scale-105"><PlusCircle className="mr-2"/>Add Project</Button>
-            </AccordionContent>
-          </AccordionItem>
+         
 
-          <AccordionItem value="skills">
-            <AccordionTrigger className="text-lg font-semibold"><Wrench className="mr-3 h-5 w-5 text-primary accordion-icon"/>Skills</AccordionTrigger>
-            <AccordionContent className="pt-2">
-                <div className="relative">
-                    <Label htmlFor="skills">Skills (comma-separated)</Label>
-                    <Textarea 
-                      id="skills" 
-                      value={skillsInputValue} 
-                      onChange={(e) => handleSkillsChange(e.target.value)}
-                      onBlur={(e) => handleSkillsBlur(e.target.value)}
-                      onKeyDown={handleSkillsKeyDown}
-                      className="pr-10"
-                      placeholder="e.g., JavaScript, React, Node.js, Python"
-                    />
-                     <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
-                        {SpeechRecognition && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening('skills')}>
-                                {isListening === 'skills' ? <Mic className={cn("h-4 w-4 text-primary animate-pulse-mic")} /> : <Mic className="h-4 w-4" />}
-                            </Button>
-                        )}
-                    </div>
-                </div>
-            </AccordionContent>
-          </AccordionItem>
           
           <AccordionItem value="certifications">
             <AccordionTrigger className="text-lg font-semibold"><Ribbon className="mr-3 h-5 w-5 text-primary accordion-icon"/>Certifications & Training (optional)</AccordionTrigger>
@@ -562,9 +701,16 @@ export function ResumeBuilder({
                     <div><Label>Organization</Label><Input value={vol.organization} onChange={(e) => handleVolunteerChange(index, "organization", e.target.value)} /></div>
                      <div><Label>Dates</Label><Input value={vol.dates} onChange={(e) => handleVolunteerChange(index, "dates", e.target.value)} /></div>
                   </div>
-                  <div>
+                  <div className="relative">
                     <Label>Description</Label>
-                    <Textarea value={vol.description} onChange={(e) => handleVolunteerChange(index, "description", e.target.value)} rows={3} placeholder="Skills demonstrated or impact created..." />
+                    <Textarea value={vol.description} onChange={(e) => handleVolunteerChange(index, "description", e.target.value)} rows={3} placeholder="Skills demonstrated or impact created..." className="pr-10" />
+                    <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
+                        {SpeechRecognition && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground transition-colors hover:text-primary" onClick={() => toggleListening(`volunteer-${index}`)}>
+                                {isListening === `volunteer-${index}` ? <Mic className={cn("h-4 w-4 text-primary animate-pulse-mic")} /> : <Mic className="h-4 w-4" />}
+                            </Button>
+                        )}
+                    </div>
                   </div>
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-muted-foreground transition-colors hover:text-destructive" onClick={() => removeVolunteer(index)}><Trash2 className="h-4 w-4" /></Button>
                 </div>

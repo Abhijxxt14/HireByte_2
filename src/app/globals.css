@@ -210,70 +210,137 @@ body {
 }
 
 
+@page {
+  size: landscape;
+  margin: 0.2in;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 0.3in 0.25in;
+}
+
 @media print {
-  body, html {
+  * {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html, body {
+    width: 100% !important;
+    height: auto !important;
     background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
-  body * {
-    visibility: hidden;
-  }
-  #resume-preview, #resume-preview * {
-    visibility: visible;
-    color: #000 !important;
-    background-color: #fff !important;
-    border-color: #000 !important;
-  }
-  #resume-preview {
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    border: none !important;
-    box-shadow: none !important;
-    transform: scale(1);
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  #resume-preview a {
-    color: #0563C1 !important;
-    text-decoration: underline !important;
-    -webkit-text-decoration-color: #0563C1 !important;
-    text-decoration-color: #0563C1 !important;
-    cursor: pointer !important;
-    pointer-events: auto !important;
-    background: transparent !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  #resume-preview h2 {
-    color: #000 !important;
-    border-bottom: 2px solid #000 !important;
-  }
-  #resume-preview .bg-primary\/10 {
-    background-color: transparent !important;
-  }
-  /* Skills display for print */
-  .screen-skills-display {
-    display: flex !important;
-  }
-  .print-skills-display {
-    display: none !important;
-  }
-  @media print {
-    .screen-skills-display {
-      display: none !important;
-    }
-    .print-skills-display {
-      display: block !important;
-    }
-  }
+
+  /* Hide all UI elements */
   .no-print {
     display: none !important;
+  }
+
+  /* Ensure resume-preview is visible */
+  #resume-preview {
+    display: block !important;
+    visibility: visible !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    page-break-after: auto !important;
+    page-break-inside: avoid !important;
+    overflow: visible !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* Show all children of resume-preview */
+  #resume-preview * {
+    display: revert !important;
+    visibility: visible !important;
+    color: inherit !important;
+    background-color: transparent !important;
+    border-color: inherit !important;
+  }
+
+  #resume-preview header {
+    margin-bottom: 0.15in !important;
+    display: block !important;
+  }
+
+  #resume-preview main {
+    display: block !important;
+    font-size: 8.5pt !important;
+  }
+
+  #resume-preview section {
+    display: block !important;
+    margin-bottom: 0.08in !important;
+    page-break-inside: avoid !important;
+  }
+
+  #resume-preview h1, #resume-preview h2, #resume-preview h3 {
+    display: block !important;
+    color: #000 !important;
+  }
+
+  #resume-preview h2 {
+    border-bottom: 1px solid #000 !important;
+    font-size: 8.5pt !important;
+    margin: 0 0 0.03in 0 !important;
+    padding: 0 0 0.02in 0 !important;
+    font-weight: bold !important;
+  }
+
+  #resume-preview h3 {
+    font-size: 8.5pt !important;
+    margin: 0 0 0.02in 0 !important;
+    font-weight: bold !important;
+  }
+
+  #resume-preview p {
+    display: block !important;
+    font-size: 8.5pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.15 !important;
+  }
+
+  #resume-preview ul, #resume-preview ol {
+    display: block !important;
+    margin: 0.03in 0 !important;
+    padding-left: 0.15in !important;
+  }
+
+  #resume-preview li {
+    display: list-item !important;
+    font-size: 8.5pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.15 !important;
+  }
+
+  #resume-preview a {
+    color: inherit !important;
+    text-decoration: underline !important;
+  }
+
+  #resume-preview div {
+    display: block !important;
+  }
+
+  #resume-preview span {
+    display: inline !important;
   }
 }
 
