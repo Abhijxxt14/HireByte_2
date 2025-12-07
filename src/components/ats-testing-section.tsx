@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { validateResumeText } from "@/lib/file-utils";
+import { extractTextFromPDF } from "@/lib/pdf-extractor";
 import { AtsScoreDisplay } from "@/components/ats-score-display";
 
 interface ATSTestingSectionProps {
@@ -23,7 +24,7 @@ export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps)
   const [isLoading, setIsLoading] = useState(false);
   const [atsResult, setAtsResult] = useState<{score: number; feedback: string} | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [useTextInput, setUseTextInput] = useState(true);
+  const [useTextInput, setUseTextInput] = useState(false);
   const { toast } = useToast();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -59,29 +60,56 @@ export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps)
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
+      setIsLoading(true);
       
-      // For text files, extract immediately
-      if (selectedFile.type === 'text/plain') {
-        try {
-          const text = await selectedFile.text();
-          setResumeText(text);
+      try {
+        let extractedText = '';
+        
+        // Handle text files
+        if (selectedFile.type === 'text/plain') {
+          extractedText = await selectedFile.text();
+        } 
+        // Handle PDF files with client-side extraction
+        else if (selectedFile.type === 'application/pdf') {
           toast({
-            title: "File loaded",
-            description: `Loaded ${text.length} characters from your resume.`
+            title: "Processing PDF",
+            description: "Extracting text from your PDF file..."
           });
-        } catch (error) {
+          extractedText = await extractTextFromPDF(selectedFile);
+        } 
+        // Handle other file types
+        else {
           toast({
             variant: "destructive",
-            title: "Error reading file",
-            description: "Could not read the text file."
+            title: "Unsupported file type",
+            description: "Please upload a PDF or text file, or use the 'Paste Text' option."
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        if (extractedText && extractedText.length > 20) {
+          setResumeText(extractedText);
+          toast({
+            title: "File processed!",
+            description: `Extracted ${extractedText.length} characters from your resume.`
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "No text found",
+            description: "Could not extract text from the file. Please try the 'Paste Text' option."
           });
         }
-      } else {
-        // For PDF/Word files, we'll extract on the server side during analysis
+      } catch (error) {
+        console.error('File processing error:', error);
         toast({
-          title: "File uploaded",
-          description: "Your resume will be processed when you click Analyze."
+          variant: "destructive",
+          title: "Error processing file",
+          description: "Could not read the file. Please try the 'Paste Text' option instead."
         });
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -109,35 +137,6 @@ export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps)
     try {
       let finalResumeText = resumeText;
       
-      // If there's a file but no resume text, try to extract it
-      if (file && !resumeText.trim()) {
-        // Only support text files in production/Netlify
-        if (file.type === 'text/plain') {
-          try {
-            const text = await file.text();
-            finalResumeText = text;
-            setResumeText(text);
-          } catch (error) {
-            toast({
-              variant: "destructive",
-              title: "Cannot read file",
-              description: "Please use the 'Paste Text' option to copy and paste your resume content directly."
-            });
-            setIsLoading(false);
-            return;
-          }
-        } else {
-          // For PDF/Word files, show a helpful message
-          toast({
-            variant: "destructive",
-            title: "File upload not supported",
-            description: "Please click 'Paste Text' button and copy-paste your resume content directly. PDF extraction is not available in the deployed version."
-          });
-          setIsLoading(false);
-          return;
-        }
-      }
-
       // Validate resume text
       const validation = validateResumeText(finalResumeText);
       if (!validation.isValid) {
@@ -218,7 +217,7 @@ export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps)
                   Resume Content
                 </CardTitle>
                 <CardDescription>
-                  Paste your resume text below (recommended) or upload a text file
+                  Upload a PDF/text file or paste your resume text
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
