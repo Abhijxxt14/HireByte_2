@@ -136,15 +136,20 @@ export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps)
 
     setIsLoading(true);
     try {
-      let finalResumeText = resumeText;
+      let finalResumeText = resumeText.trim();
+      
+      // Debug logging
+      console.log('Resume text length:', finalResumeText.length);
+      console.log('Resume text preview:', finalResumeText.substring(0, 100));
       
       // Validate resume text
       const validation = validateResumeText(finalResumeText);
       if (!validation.isValid) {
+        console.error('Validation failed:', validation.error);
         toast({
           variant: "destructive",
           title: "Resume content needed",
-          description: validation.error
+          description: validation.error || "Please provide at least 20 characters of resume content."
         });
         setIsLoading(false);
         return;
