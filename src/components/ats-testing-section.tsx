@@ -109,23 +109,33 @@ export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps)
     try {
       let finalResumeText = resumeText;
       
-      // If there's a file but no resume text, extract it on the server
+      // If there's a file but no resume text, try to extract it
       if (file && !resumeText.trim()) {
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        const extractResponse = await fetch('/api/ai/extract-text', {
-          method: 'POST',
-          body: formData,
-        });
-        
-        if (!extractResponse.ok) {
-          throw new Error('Failed to extract text from file');
+        // Only support text files in production/Netlify
+        if (file.type === 'text/plain') {
+          try {
+            const text = await file.text();
+            finalResumeText = text;
+            setResumeText(text);
+          } catch (error) {
+            toast({
+              variant: "destructive",
+              title: "Cannot read file",
+              description: "Please use the 'Paste Text' option to copy and paste your resume content directly."
+            });
+            setIsLoading(false);
+            return;
+          }
+        } else {
+          // For PDF/Word files, show a helpful message
+          toast({
+            variant: "destructive",
+            title: "File upload not supported",
+            description: "Please click 'Paste Text' button and copy-paste your resume content directly. PDF extraction is not available in the deployed version."
+          });
+          setIsLoading(false);
+          return;
         }
-        
-        const { text } = await extractResponse.json();
-        finalResumeText = text;
-        setResumeText(text);
       }
 
       // Validate resume text
@@ -208,7 +218,7 @@ export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps)
                   Resume Content
                 </CardTitle>
                 <CardDescription>
-                  Upload a file or paste your resume text
+                  Paste your resume text below (recommended) or upload a text file
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
