@@ -62,38 +62,32 @@ export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps)
       setIsLoading(true);
       
       try {
-        let extractedText = '';
+        // For both PDF and text files, extract on server
+        toast({
+          title: selectedFile.type === 'application/pdf' ? "Processing PDF" : "Processing file",
+          description: "Extracting text from your file..."
+        });
         
-        // Handle text files
-        if (selectedFile.type === 'text/plain') {
-          extractedText = await selectedFile.text();
-        } 
-        // Handle PDF files with client-side extraction
-        else if (selectedFile.type === 'application/pdf') {
-          toast({
-            title: "Processing PDF",
-            description: "Extracting text from your PDF file..."
-          });
-          // Dynamic import to avoid SSR issues
-          const { extractTextFromPDF } = await import('@/lib/pdf-extractor');
-          extractedText = await extractTextFromPDF(selectedFile);
-        } 
-        // Handle other file types
-        else {
-          toast({
-            variant: "destructive",
-            title: "Unsupported file type",
-            description: "Please upload a PDF or text file, or use the 'Paste Text' option."
-          });
-          setIsLoading(false);
-          return;
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        
+        const extractResponse = await fetch('/api/ai/extract-text', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!extractResponse.ok) {
+          const errorData = await extractResponse.json();
+          throw new Error(errorData.error || 'Failed to extract text');
         }
         
-        if (extractedText && extractedText.length > 20) {
-          setResumeText(extractedText);
+        const { text } = await extractResponse.json();
+        
+        if (text && text.length > 20) {
+          setResumeText(text);
           toast({
             title: "File processed!",
-            description: `Extracted ${extractedText.length} characters from your resume.`
+            description: `Extracted ${text.length} characters from your resume.`
           });
         } else {
           toast({
@@ -102,12 +96,12 @@ export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps)
             description: "Could not extract text from the file. Please try the 'Paste Text' option."
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('File processing error:', error);
         toast({
           variant: "destructive",
           title: "Error processing file",
-          description: "Could not read the file. Please try the 'Paste Text' option instead."
+          description: error.message || "Could not read the file. Please try the 'Paste Text' option instead."
         });
       } finally {
         setIsLoading(false);

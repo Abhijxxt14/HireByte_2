@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Groq from 'groq-sdk';
-
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY || '',
-});
+import pdfParse from 'pdf-parse';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +14,8 @@ export async function POST(request: NextRequest) {
     }
 
     const fileType = file.type;
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
     let text = '';
 
@@ -26,33 +23,43 @@ export async function POST(request: NextRequest) {
     if (fileType === 'text/plain') {
       text = buffer.toString('utf-8');
     }
-    // Handle PDF files - Use Groq's vision API to extract text
+    // Handle PDF files with pdf-parse
     else if (fileType === 'application/pdf') {
-      // For serverless compatibility, suggest using text input instead
-      return NextResponse.json(
-        { 
-          error: 'PDF extraction is not available in serverless environment. Please copy and paste your resume text instead, or use the text input option below.' 
-        },
-        { status: 400 }
-      );
+      try {
+        const pdfData = await pdfParse(buffer);
+        text = pdfData.text;
+        
+        if (!text || text.trim().length < 20) {
+          return NextResponse.json(
+            { error: 'No readable text found in PDF. The file may be image-based or corrupted. Please try the "Paste Text" option.' },
+            { status: 400 }
+          );
+        }
+      } catch (pdfError) {
+        console.error('PDF parsing error:', pdfError);
+        return NextResponse.json(
+          { error: 'Could not parse PDF file. Please ensure it\'s a valid PDF or use the "Paste Text" option.' },
+          { status: 400 }
+        );
+      }
     }
     // Handle other document types
     else if (fileType.includes('document') || fileType.includes('word')) {
       return NextResponse.json(
-        { error: 'Word document parsing not supported. Please copy and paste your resume text instead.' },
+        { error: 'Word documents are not supported. Please convert to PDF or use the "Paste Text" option.' },
         { status: 400 }
       );
     }
     else {
       return NextResponse.json(
-        { error: 'Unsupported file type. Please paste your resume text using the text input option.' },
+        { error: 'Unsupported file type. Please upload a PDF or text file.' },
         { status: 400 }
       );
     }
 
     if (!text || text.trim().length < 20) {
       return NextResponse.json(
-        { error: 'Could not extract readable text from file. Please paste your resume text instead.' },
+        { error: 'Could not extract enough text from file. Please use the "Paste Text" option.' },
         { status: 400 }
       );
     }
@@ -61,7 +68,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Text extraction error:', error);
     return NextResponse.json(
-      { error: 'Failed to extract text from file. Please try pasting your resume text instead.' },
+      { error: 'Failed to extract text from file. Please try the "Paste Text" option.' },
       { status: 500 }
     );
   }
