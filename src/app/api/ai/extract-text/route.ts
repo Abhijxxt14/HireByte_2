@@ -1,4 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Groq from 'groq-sdk';
+
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY || '',
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,24 +27,48 @@ export async function POST(request: NextRequest) {
     if (fileType === 'text/plain') {
       text = buffer.toString('utf-8');
     }
-    // Handle PDF files with pdf-parse (dynamic require for CommonJS compatibility)
+    // Handle PDF files using Groq AI to extract text
     else if (fileType === 'application/pdf') {
       try {
-        // Use dynamic import/require for CommonJS module
-        const pdfParse = (await import('pdf-parse')).default;
-        const pdfData = await pdfParse(buffer);
-        text = pdfData.text;
+        // Convert PDF to base64 for Groq
+        const base64Pdf = buffer.toString('base64');
+        
+        // Use Groq to extract text from PDF
+        const completion = await groq.chat.completions.create({
+          model: "llama-3.2-90b-vision-preview",
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: "Extract all the text content from this resume/CV document. Return only the extracted text, no additional commentary or formatting. Include all sections like experience, education, skills, etc."
+                },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: `data:application/pdf;base64,${base64Pdf}`
+                  }
+                }
+              ]
+            }
+          ],
+          temperature: 0.1,
+          max_tokens: 4000,
+        });
+
+        text = completion.choices[0]?.message?.content || '';
         
         if (!text || text.trim().length < 20) {
           return NextResponse.json(
-            { error: 'No readable text found in PDF. The file may be image-based or corrupted. Please try the "Paste Text" option.' },
+            { error: 'Could not extract readable text from PDF. Please use the "Paste Text" option.' },
             { status: 400 }
           );
         }
-      } catch (pdfError) {
-        console.error('PDF parsing error:', pdfError);
+      } catch (pdfError: any) {
+        console.error('PDF extraction error:', pdfError);
         return NextResponse.json(
-          { error: 'Could not parse PDF file. Please ensure it\'s a valid PDF or use the "Paste Text" option.' },
+          { error: 'Could not process PDF file. Please use the "Paste Text" option to paste your resume content.' },
           { status: 400 }
         );
       }
