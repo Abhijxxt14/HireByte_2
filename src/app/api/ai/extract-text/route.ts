@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFileSync, unlinkSync } from 'fs';
-import { tmpdir } from 'os';
-import { join } from 'path';
+import Groq from 'groq-sdk';
 
-// @ts-ignore
-import extract from 'pdf-text-extract';
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY || '',
+});
 
 export async function POST(request: NextRequest) {
-  let tempFilePath: string | null = null;
-  
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -29,30 +26,26 @@ export async function POST(request: NextRequest) {
     if (fileType === 'text/plain') {
       text = buffer.toString('utf-8');
     }
-    // Handle PDF files
+    // Handle PDF files - Use Groq's vision API to extract text
     else if (fileType === 'application/pdf') {
-      // Write to temporary file
-      tempFilePath = join(tmpdir(), `resume-${Date.now()}.pdf`);
-      writeFileSync(tempFilePath, buffer);
-      
-      // Extract text from PDF
-      text = await new Promise((resolve, reject) => {
-        extract(tempFilePath!, (err: any, pages: string[]) => {
-          if (err) reject(err);
-          resolve(pages.join(' '));
-        });
-      });
+      // For serverless compatibility, suggest using text input instead
+      return NextResponse.json(
+        { 
+          error: 'PDF extraction is not available in serverless environment. Please copy and paste your resume text instead, or use the text input option below.' 
+        },
+        { status: 400 }
+      );
     }
     // Handle other document types
     else if (fileType.includes('document') || fileType.includes('word')) {
       return NextResponse.json(
-        { error: 'Word document parsing not implemented. Please save as PDF or paste text.' },
+        { error: 'Word document parsing not supported. Please copy and paste your resume text instead.' },
         { status: 400 }
       );
     }
     else {
       return NextResponse.json(
-        { error: 'Unsupported file type. Please upload PDF or text file.' },
+        { error: 'Unsupported file type. Please paste your resume text using the text input option.' },
         { status: 400 }
       );
     }
@@ -71,14 +64,5 @@ export async function POST(request: NextRequest) {
       { error: 'Failed to extract text from file. Please try pasting your resume text instead.' },
       { status: 500 }
     );
-  } finally {
-    // Clean up temporary file
-    if (tempFilePath) {
-      try {
-        unlinkSync(tempFilePath);
-      } catch (e) {
-        // Ignore cleanup errors
-      }
-    }
   }
 }

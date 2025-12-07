@@ -23,7 +23,7 @@ export function ATSTestingSection({ onScrollToBuilder }: ATSTestingSectionProps)
   const [isLoading, setIsLoading] = useState(false);
   const [atsResult, setAtsResult] = useState<{score: number; feedback: string} | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [useTextInput, setUseTextInput] = useState(false);
+  const [useTextInput, setUseTextInput] = useState(true);
   const { toast } = useToast();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
