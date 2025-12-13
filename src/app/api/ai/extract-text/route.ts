@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Configure PDF.js worker for Node.js environment
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+import PDFParser from 'pdf2json';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,37 +23,65 @@ export async function POST(request: NextRequest) {
     if (fileType === 'text/plain') {
       text = buffer.toString('utf-8');
     }
-    // Handle PDF files using PDF.js
+    // Handle PDF files using pdf2json (lightweight and Next.js compatible)
     else if (fileType === 'application/pdf') {
       try {
-        // Load PDF document
-        const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(buffer) });
-        const pdf = await loadingTask.promise;
+        const pdfParser = new PDFParser();
         
-        const textParts: string[] = [];
+        // Parse PDF and extract text
+        const pdfText = await new Promise<string>((resolve, reject) => {
+          pdfParser.on('pdfParser_dataError', (errData: any) => {
+            console.error('PDF Parser Error:', errData.parserError);
+            reject(errData.parserError);
+          });
+          
+          pdfParser.on('pdfParser_dataReady', (pdfData: any) => {
+            try {
+              // Extract text from all pages
+              let extractedText = '';
+              
+              if (pdfData && pdfData.Pages) {
+                pdfData.Pages.forEach((page: any) => {
+                  if (page.Texts) {
+                    page.Texts.forEach((textItem: any) => {
+                      if (textItem.R) {
+                        textItem.R.forEach((run: any) => {
+                          if (run.T) {
+                            extractedText += decodeURIComponent(run.T) + ' ';
+                          }
+                        });
+                      }
+                    });
+                    extractedText += '\n';
+                  }
+                });
+              }
+              
+              console.log('Extracted text length:', extractedText.length);
+              console.log('First 200 chars:', extractedText.substring(0, 200));
+              resolve(extractedText);
+            } catch (e) {
+              console.error('Error processing PDF data:', e);
+              reject(e);
+            }
+          });
+          
+          pdfParser.parseBuffer(buffer);
+        });
         
-        // Extract text from each page
-        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-          const page = await pdf.getPage(pageNum);
-          const textContent = await page.getTextContent();
-          const pageText = textContent.items
-            .map((item: any) => item.str)
-            .join(' ');
-          textParts.push(pageText);
-        }
-        
-        text = textParts.join('\n\n');
+        text = pdfText;
         
         if (!text || text.trim().length < 20) {
+          console.log('Text extraction failed - length:', text?.length);
           return NextResponse.json(
-            { error: 'Could not extract readable text from PDF. The file may be image-based. Please use the "Paste Text" option.' },
+            { error: 'Could not extract readable text from PDF. The file may be image-based or empty. Please use the "Paste Text" option.' },
             { status: 400 }
           );
         }
       } catch (pdfError: any) {
         console.error('PDF extraction error:', pdfError);
         return NextResponse.json(
-          { error: 'Could not process PDF file. Please use the "Paste Text" option to paste your resume content.' },
+          { error: 'Could not process PDF file. Please ensure it\'s a valid PDF or use the "Paste Text" option.' },
           { status: 400 }
         );
       }

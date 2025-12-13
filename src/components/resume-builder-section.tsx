@@ -32,6 +32,20 @@ export function ResumeBuilderSection({ onBackToTop }: ResumeBuilderSectionProps)
     }
   });
 
+  const [sectionOrder, setSectionOrder] = useState<string[]>([
+    'personal-info',
+    'summary',
+    'skills',
+    'education',
+    'experience',
+    'projects',
+    'certifications',
+    'awards',
+    'volunteer',
+    'languages',
+    'job-description'
+  ]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [atsResult, setAtsResult] = useState<AtsScoreResumeOutput | null>(null);
   const [jobDescription, setJobDescription] = useState('');
@@ -163,11 +177,13 @@ ${resumeData.skills.join(', ')}
               handleScore={() => handleGetAtsScore(jobDescription)}
               isLoading={isLoading}
               atsResult={atsResult}
+              sectionOrder={sectionOrder}
+              setSectionOrder={setSectionOrder}
             />
           </div>
           
           <div className="space-y-8 print:w-full print:p-0 print:m-0">
-            <ResumePreview resumeData={resumeData} />
+            <ResumePreview resumeData={resumeData} sectionOrder={sectionOrder} />
           </div>
         </div>
         
